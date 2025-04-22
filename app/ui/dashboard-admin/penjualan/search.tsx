@@ -1,37 +1,56 @@
-'use client';
+// app/ui/penjualan/search.tsx  
+'use client';  
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';  
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';  
 
-export default function Search({ placeholder }: { placeholder: string }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const router = useRouter();
+interface SearchProps {  
+  placeholder: string;  
+  onSearch?: (query: string) => void;  
+}  
 
-  const handleSearch = () => {
-    // Handle search on client side
-    // If you need to navigate/refresh with new data, you can use router.push
-    // For now, let's just use a state variable
-    console.log("Search term:", searchTerm);
-    
-    // If you want to implement actual navigation:
-    // router.push(`/dashboard/penjualan?query=${encodeURIComponent(searchTerm)}`);
-  };
+export default function Search({ placeholder, onSearch }: SearchProps) {  
+  const [searchTerm, setSearchTerm] = useState('');  
 
-  return (
-    <div className="relative flex items-center">
-      <input
-        type="text"
-        className="pl-4 pr-10 py-2 rounded-md text-black w-64"
-        placeholder={placeholder}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        value={searchTerm}
-      />
-      <button 
-        onClick={handleSearch}
-        className="absolute right-3 text-gray-500"
-      >
-        🔍
-      </button>
-    </div>
-  );
+  const handleSearch = () => {  
+    if (onSearch) {  
+      onSearch(searchTerm);  
+    }  
+  };  
+
+  const handleClear = () => {  
+    setSearchTerm('');  
+    if (onSearch) {  
+      onSearch('');  
+    }  
+  };  
+
+  return (  
+    <div className="relative flex w-[300px]">  
+      <input  
+        type="text"  
+        placeholder={placeholder}  
+        value={searchTerm}  
+        onChange={(e) => setSearchTerm(e.target.value)}  
+        className="w-full rounded-md border border-gray-300 py-2 pl-10 pr-8 text-sm outline-none"  
+      />  
+      <div className="absolute left-3 top-1/2 -translate-y-1/2">  
+        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />  
+      </div>  
+      {searchTerm && (  
+        <button   
+          onClick={handleClear}   
+          className="absolute right-2 top-1/2 -translate-y-1/2"  
+        >  
+          <XMarkIcon className="h-5 w-5 text-gray-500" />  
+        </button>  
+      )}  
+      <button   
+        onClick={handleSearch}  
+        className="absolute right-0 top-1/2 -translate-y-1/2 p-2"  
+      >  
+        <MagnifyingGlassIcon className="h-5 w-5 text-gray-500" />  
+      </button>  
+    </div>  
+  );  
 }
