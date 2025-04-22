@@ -1,13 +1,12 @@
-// app/dashboard/produk-cus/page.tsx
 import Image from 'next/image';
 import { newRocker, shadowsIntoLightTwo } from '@/app/ui/fonts';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-interface ProductPageProps {
-  searchParams: {
-    id?: string;
-  };
+// Define the props type explicitly as a server component
+export interface PageProps {
+  params: {};
+  searchParams: { [key: string]: string | string[] | undefined };
 }
 
 interface Product {
@@ -18,8 +17,11 @@ interface Product {
   gender?: string;
 }
 
-export default function ProductDetail({ searchParams }: ProductPageProps) {
-  const productId = searchParams.id ? parseInt(searchParams.id) : null;
+// Make this a server component by using the correct props type
+export default function ProductDetail({ searchParams }: PageProps) {
+  // Safely handle the id parameter
+  const productIdParam = searchParams.id;
+  const productId = typeof productIdParam === 'string' ? parseInt(productIdParam, 10) : null;
   
   // This would typically come from a database or API
   const products: Product[] = [
@@ -75,60 +77,60 @@ export default function ProductDetail({ searchParams }: ProductPageProps) {
       image: "/joker.png"
     },
     {
-        id: 9,
-        name: "Casper",
-        price: 250000,
-        image: "/casper.png"
-      },
-      {
-        id: 10,
-        name: "Walter White",
-        price: 380000,
-        image: "/suityellow.png"
-      },
-      {
-        id: 11,
-        name: "Annabelle",
-        price: 500000,
-        image: "/suitwhite.png"
-      },
-      {
-        id: 12,
-        name: "Michael Myers",
-        price: 400000,
-        image: "/killer.png"
-      },
-      {
-        id: 13,
-        name: "Harley Quinn - Women Jumpsuit",
-        price: 400000,
-        image: "/suit1.png"
-      },
-      {
-        id: 14,
-        name: "Harley Quinn",
-        price: 400000,
-        image: "/suit2.png"
-      },
-      {
-        id: 15,
-        name: "Terrifier",
-        price: 500000,
-        image: "/clown.png"
-      },
-      {
-        id: 16,
-        name: "Joker",
-        price: 400000,
-        image: "/joker.png"
-      }
+      id: 9,
+      name: "Casper",
+      price: 250000,
+      image: "/casper.png"
+    },
+    {
+      id: 10,
+      name: "Walter White",
+      price: 380000,
+      image: "/suityellow.png"
+    },
+    {
+      id: 11,
+      name: "Annabelle",
+      price: 500000,
+      image: "/suitwhite.png"
+    },
+    {
+      id: 12,
+      name: "Michael Myers",
+      price: 400000,
+      image: "/killer.png"
+    },
+    {
+      id: 13,
+      name: "Harley Quinn - Women Jumpsuit",
+      price: 400000,
+      image: "/suit1.png"
+    },
+    {
+      id: 14,
+      name: "Harley Quinn",
+      price: 400000,
+      image: "/suit2.png"
+    },
+    {
+      id: 15,
+      name: "Terrifier",
+      price: 500000,
+      image: "/clown.png"
+    },
+    {
+      id: 16,
+      name: "Joker",
+      price: 400000,
+      image: "/joker.png"
+    }
   ];
 
-  // Find the selected product
-  const product = products.find(p => p.id === productId);
+  // Find the selected product with better error handling
+  const product = productId !== null && !isNaN(productId) ? products.find(p => p.id === productId) : null;
   
-  // If product doesn't exist, show 404
-  if (!product) {
+  // If no valid product ID or product not found, show 404
+  if (productId === null || isNaN(productId) || !product) {
     return notFound();
   }
 
@@ -165,8 +167,11 @@ export default function ProductDetail({ searchParams }: ProductPageProps) {
 
             {/* Change Size */}
             <div className="relative">
-                <select className={`${shadowsIntoLightTwo.className} w-full bg-transparent appearance-none outline-none border border-gray-300 rounded-lg p-4 pr-10`}>
-                    <option value="S" selected>S</option>
+                <select 
+                  className={`${shadowsIntoLightTwo.className} w-full bg-transparent appearance-none outline-none border border-gray-300 rounded-lg p-4 pr-10`}
+                  defaultValue="S"
+                >
+                    <option value="S">S</option>
                     <option value="M">M</option>
                     <option value="L">L</option>
                     <option value="XL">XL</option>

@@ -1,5 +1,4 @@
 //app/dashboard/penjualan/page.tsx
-
 import React from 'react';
 import Search from '@/app/ui/dashboard-admin/penjualan/search';
 import PenjualanTable from '@/app/ui/dashboard-admin/penjualan/penjualan-table';
