@@ -1,13 +1,11 @@
+"use client";
+
 import Image from 'next/image';
 import { newRocker, shadowsIntoLightTwo } from '@/app/ui/fonts';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-
-// Define the props type explicitly as a server component
-export interface PageProps {
-  params: {};
-  searchParams: { [key: string]: string | string[] | undefined };
-}
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface Product {
   id: number;
@@ -17,121 +15,152 @@ interface Product {
   gender?: string;
 }
 
-// Make this a server component by using the correct props type
-export default function ProductDetail({ searchParams }: PageProps) {
-  // Safely handle the id parameter
-  const productIdParam = searchParams.id;
-  const productId = typeof productIdParam === 'string' ? parseInt(productIdParam, 10) : null;
+// Convert to client component to safely use URL parameters
+export default function ProductDetail() {
+  // Use the useSearchParams hook to access query parameters on the client side
+  const searchParams = useSearchParams();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // This would typically come from a database or API
-  const products: Product[] = [
-    {
-      id: 1,
-      name: "Casper",
-      price: 250000,
-      image: "/casper.png"
-    },
-    {
-      id: 2,
-      name: "Walter White",
-      price: 380000,
-      image: "/suityellow.png"
-    },
-    {
-      id: 3,
-      name: "Annabelle",
-      price: 500000,
-      image: "/suitwhite.png"
-    },
-    {
-      id: 4,
-      name: "Michael Myers",
-      price: 400000,
-      image: "/killer.png"
-    },
-    {
-      id: 5,
-      name: "Harley Quinn - Women Jumpsuit",
-      gender: "Female",
-      price: 400000,
-      image: "/suit1.png"
-    },
-    {
-      id: 6,
-      name: "Harley Quinn",
-      gender: "Female",
-      price: 400000,
-      image: "/suit2.png"
-    },
-    {
-      id: 7,
-      name: "Terrifier",
-      price: 500000,
-      image: "/clown.png"
-    },
-    {
-      id: 8,
-      name: "Joker",
-      gender: "Male",
-      price: 400000,
-      image: "/joker.png"
-    },
-    {
-      id: 9,
-      name: "Casper",
-      price: 250000,
-      image: "/casper.png"
-    },
-    {
-      id: 10,
-      name: "Walter White",
-      price: 380000,
-      image: "/suityellow.png"
-    },
-    {
-      id: 11,
-      name: "Annabelle",
-      price: 500000,
-      image: "/suitwhite.png"
-    },
-    {
-      id: 12,
-      name: "Michael Myers",
-      price: 400000,
-      image: "/killer.png"
-    },
-    {
-      id: 13,
-      name: "Harley Quinn - Women Jumpsuit",
-      price: 400000,
-      image: "/suit1.png"
-    },
-    {
-      id: 14,
-      name: "Harley Quinn",
-      price: 400000,
-      image: "/suit2.png"
-    },
-    {
-      id: 15,
-      name: "Terrifier",
-      price: 500000,
-      image: "/clown.png"
-    },
-    {
-      id: 16,
-      name: "Joker",
-      price: 400000,
-      image: "/joker.png"
-    }
-  ];
+  useEffect(() => {
+    // Get the ID from search params
+    const idParam = searchParams.get('id');
+    const productId = idParam ? parseInt(idParam, 10) : null;
+    
+    // This would typically come from a database or API
+    const products: Product[] = [
+      {
+        id: 1,
+        name: "Casper",
+        price: 250000,
+        image: "/casper.png"
+      },
+      {
+        id: 2,
+        name: "Walter White",
+        price: 380000,
+        image: "/suityellow.png"
+      },
+      {
+        id: 3,
+        name: "Annabelle",
+        price: 500000,
+        image: "/suitwhite.png"
+      },
+      {
+        id: 4,
+        name: "Michael Myers",
+        price: 400000,
+        image: "/killer.png"
+      },
+      {
+        id: 5,
+        name: "Harley Quinn - Women Jumpsuit",
+        gender: "Female",
+        price: 400000,
+        image: "/suit1.png"
+      },
+      {
+        id: 6,
+        name: "Harley Quinn",
+        gender: "Female",
+        price: 400000,
+        image: "/suit2.png"
+      },
+      {
+        id: 7,
+        name: "Terrifier",
+        price: 500000,
+        image: "/clown.png"
+      },
+      {
+        id: 8,
+        name: "Joker",
+        gender: "Male",
+        price: 400000,
+        image: "/joker.png"
+      },
+      {
+        id: 9,
+        name: "Casper",
+        price: 250000,
+        image: "/casper.png"
+      },
+      {
+        id: 10,
+        name: "Walter White",
+        price: 380000,
+        image: "/suityellow.png"
+      },
+      {
+        id: 11,
+        name: "Annabelle",
+        price: 500000,
+        image: "/suitwhite.png"
+      },
+      {
+        id: 12,
+        name: "Michael Myers",
+        price: 400000,
+        image: "/killer.png"
+      },
+      {
+        id: 13,
+        name: "Harley Quinn - Women Jumpsuit",
+        price: 400000,
+        image: "/suit1.png"
+      },
+      {
+        id: 14,
+        name: "Harley Quinn",
+        price: 400000,
+        image: "/suit2.png"
+      },
+      {
+        id: 15,
+        name: "Terrifier",
+        price: 500000,
+        image: "/clown.png"
+      },
+      {
+        id: 16,
+        name: "Joker",
+        price: 400000,
+        image: "/joker.png"
+      }
+    ];
 
-  // Find the selected product with better error handling
-  const product = productId !== null && !isNaN(productId) ? products.find(p => p.id === productId) : null;
+    // Find the selected product with better error handling
+    if (productId !== null && !isNaN(productId)) {
+      const foundProduct = products.find(p => p.id === productId);
+      setProduct(foundProduct || null);
+    } else {
+      setProduct(null);
+    }
+    
+    setIsLoading(false);
+  }, [searchParams]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black bg-gradient-to-b from-black to-gray-900 text-white flex items-center justify-center">
+        <p className="text-xl">Loading product...</p>
+      </div>
+    );
+  }
   
-  // If no valid product ID or product not found, show 404
-  if (productId === null || isNaN(productId) || !product) {
-    return notFound();
+  // If product doesn't exist, show 404
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-black bg-gradient-to-b from-black to-gray-900 text-white flex flex-col items-center justify-center p-4">
+        <h1 className="text-3xl mb-4">Product Not Found</h1>
+        <p className="mb-6">The product you are looking for does not exist.</p>
+        <Link href="/dashboard" className={`${shadowsIntoLightTwo.className} text-xl text-blue-400 hover:underline`}>
+          Return to Shop
+        </Link>
+      </div>
+    );
   }
 
   return (
