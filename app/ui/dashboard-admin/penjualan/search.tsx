@@ -1,51 +1,37 @@
 'use client';
 
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import { useDebouncedCallback } from 'use-debounce';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Search({ placeholder }: { placeholder: string }) {
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { replace } = useRouter();
+  const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
 
-  const handleSearch = useDebouncedCallback((term: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (term) {
-      params.set('query', term);
-    } else {
-      params.delete('query');
-    }
-    params.set('page', '1');
-    replace(`${pathname}?${params.toString()}`);
-  }, 300);
-
-  const handleClear = () => {
-    const input = document.querySelector('input');
-    if (input) input.value = '';
-    const params = new URLSearchParams(searchParams);
-    params.delete('query');
-    params.set('page', '1');
-    replace(`${pathname}?${params.toString()}`);
+  const handleSearch = () => {
+    // Handle search on client side
+    // If you need to navigate/refresh with new data, you can use router.push
+    // For now, let's just use a state variable
+    console.log("Search term:", searchTerm);
+    
+    // If you want to implement actual navigation:
+    // router.push(`/dashboard/penjualan?query=${encodeURIComponent(searchTerm)}`);
   };
 
   return (
-    <div className="relative flex w-[300px]">
+    <div className="relative flex items-center">
       <input
-        className="text-black w-full rounded-md border border-gray-300 py-2 pl-10 pr-8 text-sm outline-none absolute-right"
+        type="text"
+        className="pl-4 pr-10 py-2 rounded-md text-black w-64"
         placeholder={placeholder}
-        onChange={(e) => handleSearch(e.target.value)}
-        defaultValue={searchParams.get('query')?.toString()}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        value={searchTerm}
       />
-      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-        {searchParams.get('query') ? (
-          <button onClick={handleClear}>
-            <XMarkIcon className="h-5 w-5 text-gray-500" />
-          </button>
-        ) : (
-          <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-        )}
-      </div>
+      <button 
+        onClick={handleSearch}
+        className="absolute right-3 text-gray-500"
+      >
+        🔍
+      </button>
     </div>
   );
 }
