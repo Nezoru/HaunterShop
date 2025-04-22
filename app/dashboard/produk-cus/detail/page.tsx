@@ -3,165 +3,19 @@
 import Image from 'next/image';
 import { newRocker, shadowsIntoLightTwo } from '@/app/ui/fonts';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  gender?: string;
-}
+// Detail produk yang ditampilkan secara langsung (hardcoded)
+const productData = {
+  id: 8,
+  name: "Joker",
+  gender: "Male",
+  price: 400000,
+  image: "/joker.png"
+};
 
-// Convert to client component to safely use URL parameters
 export default function ProductDetail() {
-  // Use the useSearchParams hook to access query parameters on the client side
-  const searchParams = useSearchParams();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  useEffect(() => {
-    // Get the ID from search params
-    const idParam = searchParams.get('id');
-    const productId = idParam ? parseInt(idParam, 10) : null;
-    
-    // This would typically come from a database or API
-    const products: Product[] = [
-      {
-        id: 1,
-        name: "Casper",
-        price: 250000,
-        image: "/casper.png"
-      },
-      {
-        id: 2,
-        name: "Walter White",
-        price: 380000,
-        image: "/suityellow.png"
-      },
-      {
-        id: 3,
-        name: "Annabelle",
-        price: 500000,
-        image: "/suitwhite.png"
-      },
-      {
-        id: 4,
-        name: "Michael Myers",
-        price: 400000,
-        image: "/killer.png"
-      },
-      {
-        id: 5,
-        name: "Harley Quinn - Women Jumpsuit",
-        gender: "Female",
-        price: 400000,
-        image: "/suit1.png"
-      },
-      {
-        id: 6,
-        name: "Harley Quinn",
-        gender: "Female",
-        price: 400000,
-        image: "/suit2.png"
-      },
-      {
-        id: 7,
-        name: "Terrifier",
-        price: 500000,
-        image: "/clown.png"
-      },
-      {
-        id: 8,
-        name: "Joker",
-        gender: "Male",
-        price: 400000,
-        image: "/joker.png"
-      },
-      {
-        id: 9,
-        name: "Casper",
-        price: 250000,
-        image: "/casper.png"
-      },
-      {
-        id: 10,
-        name: "Walter White",
-        price: 380000,
-        image: "/suityellow.png"
-      },
-      {
-        id: 11,
-        name: "Annabelle",
-        price: 500000,
-        image: "/suitwhite.png"
-      },
-      {
-        id: 12,
-        name: "Michael Myers",
-        price: 400000,
-        image: "/killer.png"
-      },
-      {
-        id: 13,
-        name: "Harley Quinn - Women Jumpsuit",
-        price: 400000,
-        image: "/suit1.png"
-      },
-      {
-        id: 14,
-        name: "Harley Quinn",
-        price: 400000,
-        image: "/suit2.png"
-      },
-      {
-        id: 15,
-        name: "Terrifier",
-        price: 500000,
-        image: "/clown.png"
-      },
-      {
-        id: 16,
-        name: "Joker",
-        price: 400000,
-        image: "/joker.png"
-      }
-    ];
-
-    // Find the selected product with better error handling
-    if (productId !== null && !isNaN(productId)) {
-      const foundProduct = products.find(p => p.id === productId);
-      setProduct(foundProduct || null);
-    } else {
-      setProduct(null);
-    }
-    
-    setIsLoading(false);
-  }, [searchParams]);
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-black bg-gradient-to-b from-black to-gray-900 text-white flex items-center justify-center">
-        <p className="text-xl">Loading product...</p>
-      </div>
-    );
-  }
-  
-  // If product doesn't exist, show 404
-  if (!product) {
-    return (
-      <div className="min-h-screen bg-black bg-gradient-to-b from-black to-gray-900 text-white flex flex-col items-center justify-center p-4">
-        <h1 className="text-3xl mb-4">Product Not Found</h1>
-        <p className="mb-6">The product you are looking for does not exist.</p>
-        <Link href="/dashboard" className={`${shadowsIntoLightTwo.className} text-xl text-blue-400 hover:underline`}>
-          Return to Shop
-        </Link>
-      </div>
-    );
-  }
+  const [selectedSize, setSelectedSize] = useState('M');
 
   return (
     <div className="min-h-screen bg-black bg-gradient-to-b from-black to-gray-900 text-white p-4 md:p-8">
@@ -171,8 +25,8 @@ export default function ProductDetail() {
           <div className="md:w-1/2">
             <div className="relative h-96 w-full">
               <Image 
-                src={product.image}
-                alt={product.name}
+                src={productData.image}
+                alt={productData.name}
                 fill
                 className="object-contain"
               />
@@ -183,31 +37,35 @@ export default function ProductDetail() {
           <div className="md:w-1/2 flex flex-col">
             <h2 className={`${newRocker.className} text-3xl mb-4 font-bold`}>Nama Kostum</h2>
             <div className="border border-gray-300 rounded-lg p-4 mb-6">
-              <p className={`${shadowsIntoLightTwo.className} text-xl`}>{product.name}{product.gender ? ` - ${product.gender}` : ''}</p>
+              <p className={`${shadowsIntoLightTwo.className} text-xl`}>
+                {productData.name}{productData.gender ? ` - ${productData.gender}` : ''}
+              </p>
             </div>
             
             <h2 className={`${newRocker.className} text-3xl mb-4 font-bold`}>Harga Kostum</h2>
             <div className="border border-gray-300 rounded-lg p-4 mb-6">
-              <p className={`${shadowsIntoLightTwo.className} text-xl`}>Rp{product.price.toLocaleString()}</p>
+              <p className={`${shadowsIntoLightTwo.className} text-xl`}>
+                Rp{productData.price.toLocaleString()}
+              </p>
             </div>
             
             <h2 className={`${newRocker.className} text-3xl mb-4 font-bold`}>Size Kostum</h2>
             <div className="mb-6">
-
-            {/* Change Size */}
-            <div className="relative">
+              {/* Change Size */}
+              <div className="relative">
                 <select 
                   className={`${shadowsIntoLightTwo.className} w-full bg-transparent appearance-none outline-none border border-gray-300 rounded-lg p-4 pr-10`}
-                  defaultValue="S"
+                  value={selectedSize}
+                  onChange={(e) => setSelectedSize(e.target.value)}
                 >
-                    <option value="S">S</option>
-                    <option value="M">M</option>
-                    <option value="L">L</option>
-                    <option value="XL">XL</option>
+                  <option value="S">S</option>
+                  <option value="M">M</option>
+                  <option value="L">L</option>
+                  <option value="XL">XL</option>
                 </select>
+              </div>
             </div>
 
-            </div>
             <button className={`${shadowsIntoLightTwo.className} text-2xl bg-gray-300 hover:bg-gray-400 text-black py-3 px-6 rounded-lg flex items-center justify-center mt-auto`}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
