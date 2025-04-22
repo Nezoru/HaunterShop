@@ -5,7 +5,7 @@ import Search from '@/app/ui/dashboard-admin/katalog/search';
 import KatalogTable from '@/app/ui/dashboard-admin/katalog/katalog-table';
 import { shadowsIntoLightTwo } from '@/app/ui/fonts';  
 import Link from 'next/link';
-import { fetchKatalog } from '@/app/lib/query/route';
+import { fetchKatalog } from '@/app/lib/query/dataUtils';
 
 export default async function KatalogPage() {
   // Mengambil data tanpa parameter query dan halaman

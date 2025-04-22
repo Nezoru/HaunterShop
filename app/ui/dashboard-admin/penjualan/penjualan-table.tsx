@@ -2,7 +2,7 @@
 import React from 'react';  
 import Pagination from '@/app/ui/dashboard-admin/katalog/pagination';
 import PaginationWrapper from './pagination.wrapper';  
-import { fetchPenjualan } from '@/app/lib/query/route'; 
+import { fetchPenjualan } from '@/app/lib/query/dataUtils'; 
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline'; 
 import { shadowsIntoLightTwo } from '@/app/ui/fonts';
 import Link from 'next/link';

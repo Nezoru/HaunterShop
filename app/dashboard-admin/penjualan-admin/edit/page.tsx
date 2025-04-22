@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { shadowsIntoLightTwo, newRocker } from '@/app/ui/fonts';
-import { getPenjualanById } from '@/app/lib/query/route';
+import { getPenjualanById } from '@/app/lib/query/dataUtils';
 
 export default function EditPenjualanPage() {
   const [namaPembeli, setNamaPembeli] = useState('');

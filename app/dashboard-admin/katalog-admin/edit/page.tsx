@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { shadowsIntoLightTwo } from '@/app/ui/fonts';
-import { getKatalogById } from '@/app/lib/query/route';
+import { getKatalogById } from '@/app/lib/query/dataUtils';
 
 export default function EditProdukPage() {
   const [namaProduk, setNamaProduk] = useState('');
