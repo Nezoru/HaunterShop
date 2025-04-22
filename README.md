@@ -14,7 +14,7 @@ Haunter Shop dapat dijadikan alat bantu bagi pemilik usaha dalam melihat proses 
 
 Link GitHub: https://github.com/Nezoru/HaunterShop.git
 
-Link deploy: haunter-shop-du5i-nc3vnuklg-nezorus-projects.vercel.app
+Link deploy: https://haunter-shop.vercel.app/
 
 Bagian yang sudah dikerjakan
 
