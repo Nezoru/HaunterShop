@@ -1,6 +1,5 @@
 // app/dashboard/katalog/page.tsx
 import React from 'react';
-import Image from 'next/image';
 import { poppins } from '@/app/ui/fonts';
 import Search from '@/app/ui/dashboard-admin/katalog/search';   
 import KatalogTable from '@/app/ui/dashboard-admin/katalog/katalog-table';
@@ -8,16 +7,14 @@ import { shadowsIntoLightTwo } from '@/app/ui/fonts';
 import Link from 'next/link';
 import { fetchKatalog } from '@/app/lib/query/route'; // <- Import fetchKatalog
 
-export default async function KatalogPage({ 
+export default async function KatalogPage({
   searchParams,
 }: {
-  searchParams?: {
-    query?: string;
-    page?: string;
-  };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
-  const query = searchParams?.query || '';
-  const currentPage = Number(searchParams?.page) || 1;
+
+  const query = typeof searchParams?.query === 'string' ? searchParams.query : '';
+  const currentPage = typeof searchParams?.page === 'string' ? Number(searchParams.page) : 1;
 
   const { katalog, totalPages } = await fetchKatalog(query, currentPage); // Ambil data katalog
 
@@ -33,7 +30,7 @@ export default async function KatalogPage({
       <Search placeholder="Cari Disini" />  
         {/* Ubah button Tambah Kostum menjadi Link */}  
         <Link   
-          href="/dashboard-admin/katalog-admin/tambah"   
+          href="/dashboard/katalog/tambah"   
           className={`bg-gray-300 hover:bg-gray-400 py-2 px-4 rounded text-black border border-white ${shadowsIntoLightTwo.className}`}  
         >  
           Tambah Kostum  
