@@ -35,17 +35,17 @@ export default function DashboardPage() {
             Pemasukan
           </div>
           <div className={`px-4 py-6 text-center text-xl ${shadowsIntoLightTwo.className}`}>
-            + Rp6.800.000
+            + Rp0
           </div>
         </div>
         <div className="bg-white text-black rounded-lg border border-white">
           <div
             className={`bg-black text-white px-4 py-2 rounded-t-lg ${newRocker.className}`}
           >
-            Pengeluaran
+            Jumlah Pembeli
           </div>
           <div className={`px-4 py-6 text-center text-xl ${shadowsIntoLightTwo.className}`}>
-            - Rp4.750.000
+            0
           </div>
         </div>
       </div>
