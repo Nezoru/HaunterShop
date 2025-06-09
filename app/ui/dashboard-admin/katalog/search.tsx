@@ -11,6 +11,8 @@ export default function Search({ placeholder }: { placeholder: string }) {
   const { replace } = useRouter();
   
   const handleSearch = useDebouncedCallback((term) => {
+    console.log(`Searching... ${term}`);
+
     const params = new URLSearchParams(searchParams);
     if (term) {
       params.set('query', term);
@@ -29,7 +31,7 @@ export default function Search({ placeholder }: { placeholder: string }) {
   };
 
   return (
-<div className={`relative flex w-75 ${shadowsIntoLightTwo.className}`}>
+    <div className={`relative flex ${shadowsIntoLightTwo.className}`}>
       <label htmlFor="search" className="sr-only">
         Search
       </label>

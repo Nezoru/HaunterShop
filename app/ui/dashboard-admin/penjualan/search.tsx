@@ -1,30 +1,42 @@
 'use client';
 
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { useDebouncedCallback } from 'use-debounce';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function Search({ placeholder }: { placeholder: string }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const router = useRouter();
-
-  const handleSearch = () => {
-    // Handle search on client side
-    // If you need to navigate/refresh with new data, you can use router.push
-    // For now, let's just use a state variable
-    console.log("Search term:", searchTerm);
+  const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const { replace } = useRouter();
     
-    // If you want to implement actual navigation:
-    // router.push(`/dashboard/penjualan?query=${encodeURIComponent(searchTerm)}`);
-  };
+    const handleSearch = useDebouncedCallback((term) => {
+      console.log(`Searching... ${term}`);
+      
+      const params = new URLSearchParams(searchParams);
+      if (term) {
+        params.set('query', term);
+      } else {
+        params.delete('query');
+      }
+      replace(`${pathname}?${params.toString()}`);
+    }, 300);
+    
+    const handleClear = () => {
+      const input = document.querySelector('input');
+      if (input) input.value = '';
+      const params = new URLSearchParams(searchParams);
+      params.delete('query');
+      replace(`${pathname}?${params.toString()}`);
+    };
 
   return (
     <div className="relative flex items-center">
       <input
-        type="text"
         className="pl-4 pr-10 py-2 rounded-md text-black w-64"
         placeholder={placeholder}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        value={searchTerm}
+        onChange={(e) => handleSearch(e.target.value)}
+        defaultValue={searchParams.get('query')?.toString()}
       />
       <button 
         onClick={handleSearch}

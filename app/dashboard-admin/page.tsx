@@ -3,7 +3,27 @@ import { shadowsIntoLightTwo, poppins, newRocker } from "@/app/ui/fonts";
 import { TopCustomer } from "@/app/ui/dashboard-admin/top-customer";
 import { MostOrderedCostume } from "@/app/ui/dashboard-admin/most-ordered-customer";
 
-export default function DashboardPage() {
+import { Card } from "../ui/dashboard/cards";
+import { fetchRevenue, fetchLatestInvoices, fetchCardData } from '@/app/lib/data';
+import RevenueChart from '@/app/ui/dashboard/revenue-chart';
+import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
+import RevenueChartClient from "../ui/dashboard/revenue-chart-client";
+import { Suspense } from "react";
+import { RevenueChartSkeleton, LatestInvoicesSkeleton, CardsSkeleton } from "../ui/skeletons";
+import { getAllProduk } from "@/app/lib/data";
+import CardWrapper from "../ui/dashboard-cus/cards"; 
+
+export default async function DashboardPage() {
+  // Guided
+  const revenue = await fetchRevenue();
+  const latestInvoices = await fetchLatestInvoices();
+  const {
+    numberOfInvoices,
+    numberOfCustomers,
+    totalPaidInvoices,
+    totalPendingInvoices,
+  } = await fetchCardData();
+
   // Mock data - bisa diganti nanti pakai fetch atau props
   const topCustomer = {
     name: "Jajang",
@@ -15,6 +35,7 @@ export default function DashboardPage() {
     quantity: 3,
   };
 
+  const semuaproduk = await getAllProduk();
   return (
     <div className={`${poppins.className} bg-black min-h-screen p-6 text-white`}>
       {/* Tombol Profile */}
@@ -27,37 +48,37 @@ export default function DashboardPage() {
       </div>
 
       {/* Kartu Pemasukan dan Pengeluaran */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      {/* <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white text-black rounded-lg border border-white">
           <div
             className={`bg-black text-white px-4 py-2 rounded-t-lg ${newRocker.className}`}
           >
-            Pemasukan
+            Kostum Terlaris
           </div>
           <div className={`px-4 py-6 text-center text-xl ${shadowsIntoLightTwo.className}`}>
-            + Rp6.800.000
+            + Rp0
           </div>
         </div>
         <div className="bg-white text-black rounded-lg border border-white">
           <div
             className={`bg-black text-white px-4 py-2 rounded-t-lg ${newRocker.className}`}
           >
-            Pengeluaran
+            Total Produk
           </div>
           <div className={`px-4 py-6 text-center text-xl ${shadowsIntoLightTwo.className}`}>
-            - Rp4.750.000
+            5
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Komponen Top Customer & Most Ordered Costume */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <TopCustomer name={topCustomer.name} count={topCustomer.count} />
         <MostOrderedCostume name={mostOrdered.name} quantity={mostOrdered.quantity} />
-      </div>
+      </div> */}
 
       {/* Tabel Histori Transaksi */}
-      <div className="bg-white text-black rounded-lg border border-white">
+      {/* <div className="bg-white text-black rounded-lg border border-white">
         <div
           className={`bg-black text-white px-4 py-2 rounded-t-lg text-center text-lg ${newRocker.className}`}
         >
@@ -85,6 +106,30 @@ export default function DashboardPage() {
             </tr>
           </tbody>
         </table>
+      </div> */}
+
+      {/* Guided */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+        {/* <Card title="Collected" value={totalPaidInvoices} type="collected" /> */}
+        {/* <Card title="Pending" value={totalPendingInvoices} type="pending" /> */}
+        {/* <Card title="Kostum Terlaris Hari ini" value="Tidak ada" type="invoices" /> */}
+        {/* <Card
+          title="Total Produk"
+          value={semuaproduk.length}
+          type="customers"
+        /> */}
+        <Suspense fallback={<CardsSkeleton/>}>
+          <CardWrapper/>
+        </Suspense>
+      </div>
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
+        <Suspense fallback={<RevenueChartSkeleton/>}>
+          <RevenueChart/>
+        </Suspense>
+        <Suspense fallback={<LatestInvoicesSkeleton/>}>
+          <LatestInvoices/>
+        </Suspense>
+        {/* <LatestInvoices latestInvoices={latestInvoices} /> */}
       </div>
     </div>
   );

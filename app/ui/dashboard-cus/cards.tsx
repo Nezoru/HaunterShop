@@ -15,20 +15,19 @@ const iconMap = {
 };
 
 export default async function CardWrapper() {
-   const semuaproduk = await getAllProduk();
-   
+  const semuaproduk = await getAllProduk();
   return (
     <>
       {/* NOTE: Uncomment this code in Chapter 9 */}
 
-      {/* <Card title="Collected" value={totalPaidInvoices} type="collected" /> */ }
-      {/* <Card title="Pending" value={totalPendingInvoices} type="pending" /> */}
+      {/* <Card title="Collected" value={totalPaidInvoices} type="collected" />
+      <Card title="Pending" value={totalPendingInvoices} type="pending" /> */}
       <Card title="Kostum Terlaris Hari ini" value="Tidak ada" type="invoices" />
       <Card
-          title="Total Produk"
-          value={semuaproduk.length}
-          type="customers"
-        />
+        title="Total Produk"
+        value={semuaproduk.length}
+        type="customers"
+      />
     </>
   );
 }

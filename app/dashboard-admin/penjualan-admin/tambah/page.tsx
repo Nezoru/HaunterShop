@@ -14,7 +14,7 @@ export default function TambahPenjualanPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Penjualan Ditambahkan:', { namaPembeli, produk, harga });
-    router.push('/dashboard/penjualan');
+    router.push('/dashboard-admin/penjualan-admin');
   };
 
   return (
@@ -84,7 +84,7 @@ export default function TambahPenjualanPage() {
       {/* Tombol BATAL */}
       <button
         type="button"
-        onClick={() => router.push('/dashboard/penjualan')}
+        onClick={() => router.push('/dashboard-admin/penjualan-admin')}
         className="absolute left-[753px] top-[581px] w-[485px] h-16 bg-red-600 rounded-xl border border-black"
       >
         <span className="text-white text-2xl font-['New_Rocker']">BATAL</span>
