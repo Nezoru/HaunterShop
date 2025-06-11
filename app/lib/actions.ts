@@ -3,7 +3,7 @@
 'use server';
 
 import { z } from 'zod';
-import { createProduk, updateProduk, getProdukById, getAllProduk, deleteProduk } from './data';
+import { createProduk, updateProduk, getProdukById, getAllProduk, deleteProduk, createTransaksiLangsung, deleteTransaksi } from './data';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 
@@ -15,6 +15,23 @@ const UpdateProdukSchema = z.object({
   stok: z.coerce.number().min(0, 'Stok tidak boleh negatif'),
 });
 
+const CreateTransaksiSchema = z.object({
+  customer_id: z.string().min(1, 'Customer ID harus diisi'),
+  produk_id: z.string().min(1, 'Produk ID harus diisi'),
+  harga: z.number().positive('Harga harus lebih dari 0'),
+  tanggal_transaksi: z.string().min(1, 'Tanggal transaksi harus diisi'),
+});
+
+
+// Interface untuk form data
+interface CreateTransaksiFormData {
+  customer_id: string;
+  produk_id: string;
+  harga: number;
+  tanggal_transaksi: string;
+}
+
+
 export type State = {
   errors?: {
     nama_produk?: string[];
@@ -23,6 +40,7 @@ export type State = {
     stok?: string[];
   };
   message?: string | null;
+  success?: boolean; 
 };
 
 // Create function (existing)
@@ -170,7 +188,12 @@ export async function updateProdukAction(
 
   // Revalidate cache dan redirect
   revalidatePath('/dashboard-admin/katalog-admin');
-  redirect('/dashboard-admin/katalog-admin');
+  // redirect('/dashboard-admin/katalog-admin');
+
+  return {
+  success: true,
+  message: 'Produk berhasil diperbarui!',
+};
 }
 
 // Alternative simpler update function untuk testing
@@ -246,5 +269,41 @@ export async function deleteProduct(id: string) {
   } catch (error) {
     console.error('Failed to delete product:', error);
     throw error;
+  }
+}
+
+export async function tambahTransaksi(data: {
+  produk: string;
+  namaPembeli: string;
+  emailPembeli: string;
+  harga: number;
+  tanggal: string;
+}) {
+  await createTransaksiLangsung({
+    produk: data.produk,
+    namaPembeli: data.namaPembeli,
+    emailPembeli: data.emailPembeli,
+    harga: data.harga,
+    tanggal_transaksi: data.tanggal,
+  });
+}
+
+export async function deleteTransaksiAction(id: string) {
+  try {
+    await deleteTransaksi(id);
+    
+    // Revalidate path untuk refresh data
+    revalidatePath('/dashboard-admin/penjualan-admin');
+    
+    return { 
+      success: true, 
+      message: 'Transaksi berhasil dihapus!' 
+    };
+  } catch (error) {
+    console.error('Error in deleteTransaksiAction:', error);
+    return { 
+      success: false, 
+      message: `Gagal menghapus transaksi: ${error instanceof Error ? error.message : 'Kesalahan tidak dikenal'}` 
+    };
   }
 }

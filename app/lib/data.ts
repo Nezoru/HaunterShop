@@ -9,8 +9,6 @@ import {
 } from './definitions';
 import { formatCurrency } from './utils';
 
-
-
 interface Produk {
   id: string;
   nama_produk: string;
@@ -20,7 +18,6 @@ interface Produk {
   id_transaksis_produk_id: string;
   // Add other fields as needed
 }
-
 
 interface TransaksiWithDetails {
   id: string;
@@ -40,6 +37,14 @@ interface CreateProdukData {
   harga_produk: number;
   image_produk: string;
   stok: number; // optional, default bisa 0
+}
+
+interface CreateTransaksiData {
+  produk: string;
+  namaPembeli: string;
+  emailPembeli: string;
+  harga: number;
+  tanggal_transaksi: string;
 }
 
 export const dynamic = 'force-dynamic';
@@ -86,6 +91,131 @@ export async function fetchLatestInvoices() {
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch the latest invoices.');
+  }
+}
+
+// Tambahkan fungsi ini ke file data.ts Anda
+
+export async function fetchRevenueFromTransaksi() {
+  try {
+    console.log('Fetching revenue data from transactions...');
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Query untuk mendapatkan revenue per bulan dari tabel transaksi
+    const data = await sql`
+      SELECT 
+        TO_CHAR(tanggal_transaksi, 'Mon') as month,
+        SUM(harga) as revenue
+      FROM transaksi 
+      WHERE tanggal_transaksi >= NOW() - INTERVAL '12 months'
+      GROUP BY 
+        EXTRACT(YEAR FROM tanggal_transaksi),
+        EXTRACT(MONTH FROM tanggal_transaksi),
+        TO_CHAR(tanggal_transaksi, 'Mon')
+      ORDER BY 
+        EXTRACT(YEAR FROM tanggal_transaksi),
+        EXTRACT(MONTH FROM tanggal_transaksi)
+    `;
+
+    console.log('Revenue data fetch completed.');
+
+    // Pastikan semua bulan ada (isi dengan 0 jika tidak ada transaksi)
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const revenueMap = new Map();
+    data.forEach(item => {
+      revenueMap.set(item.month, Number(item.revenue));
+    });
+
+    const completeRevenue = months.map(month => ({
+      month,
+      revenue: revenueMap.get(month) || 0
+    }));
+
+    return completeRevenue;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch revenue data from transactions.');
+  }
+}
+
+// Alternatif: Jika Anda ingin revenue berdasarkan tahun tertentu
+export async function fetchRevenueFromTransaksiByYear(year: number = new Date().getFullYear()) {
+  try {
+    console.log(`Fetching revenue data from transactions for year ${year}...`);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const data = await sql`
+      SELECT 
+        TO_CHAR(tanggal_transaksi, 'Mon') as month,
+        EXTRACT(MONTH FROM tanggal_transaksi) as month_num,
+        SUM(harga) as revenue
+      FROM transaksi 
+      WHERE EXTRACT(YEAR FROM tanggal_transaksi) = ${year}
+      GROUP BY 
+        EXTRACT(MONTH FROM tanggal_transaksi),
+        TO_CHAR(tanggal_transaksi, 'Mon')
+      ORDER BY month_num
+    `;
+
+    // Pastikan semua bulan ada (isi dengan 0 jika tidak ada transaksi)
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const revenueMap = new Map();
+    data.forEach(item => {
+      revenueMap.set(item.month, Number(item.revenue));
+    });
+
+    const completeRevenue = months.map(month => ({
+      month,
+      revenue: revenueMap.get(month) || 0
+    }));
+
+    return completeRevenue;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error(`Failed to fetch revenue data from transactions for year ${year}.`);
+  }
+}
+
+// Fungsi untuk mendapatkan statistik revenue tambahan
+export async function fetchRevenueStats() {
+  try {
+    console.log('Fetching revenue statistics...');
+    
+    const stats = await sql`
+      SELECT 
+        COUNT(*) as total_transactions,
+        SUM(harga) as total_revenue,
+        AVG(harga) as average_transaction,
+        MIN(harga) as min_transaction,
+        MAX(harga) as max_transaction,
+        EXTRACT(YEAR FROM MIN(tanggal_transaksi)) as first_transaction_year,
+        EXTRACT(YEAR FROM MAX(tanggal_transaksi)) as last_transaction_year
+      FROM transaksi
+    `;
+
+    const monthlyStats = await sql`
+      SELECT 
+        TO_CHAR(tanggal_transaksi, 'YYYY-MM') as year_month,
+        COUNT(*) as transactions_count,
+        SUM(harga) as monthly_revenue
+      FROM transaksi 
+      WHERE tanggal_transaksi >= NOW() - INTERVAL '12 months'
+      GROUP BY TO_CHAR(tanggal_transaksi, 'YYYY-MM')
+      ORDER BY year_month DESC
+      LIMIT 12
+    `;
+
+    return {
+      overview: stats[0],
+      monthlyBreakdown: monthlyStats
+    };
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch revenue statistics.');
   }
 }
 
@@ -392,6 +522,7 @@ export async function createProduk(data: CreateProdukData) {
     throw new Error(`Gagal membuat produk: ${error instanceof Error ? error.message : 'Kesalahan tidak dikenal'}`);
   }
 }
+
 export async function generateNextProdukId() {
   try {
     // Ambil semua ID dan process di JavaScript (lebih aman)
@@ -525,7 +656,7 @@ export async function searchTransaksiWithDetails(query: string): Promise<Transak
     }
 
     console.log('Searching transactions...');
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 2500));
 
     const data = await sql<TransaksiWithDetails[]>`
       SELECT 
@@ -579,8 +710,8 @@ export async function fetchFilteredTransaksi(
       JOIN produk ON transaksi.produk_id = produk.id
       JOIN customers ON transaksi.customer_id = customers.id
       WHERE
-        customers.name ILIKE ${`%${query}%`} OR
-        produk.nama_produk ILIKE ${`%${query}%`} OR
+        customers.name ILIKE ${`%${query}%`} OR          
+        produk.nama_produk ILIKE ${`%${query}%`} OR     
         transaksi.harga::text ILIKE ${`%${query}%`} OR
         transaksi.tanggal_transaksi::text ILIKE ${`%${query}%`} OR
         customers.email ILIKE ${`%${query}%`}
@@ -737,5 +868,100 @@ export async function deleteProduk(id: string) {
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error(`Gagal menghapus produk: ${error instanceof Error ? error.message : 'Kesalahan tidak dikenal'}`);
+  }
+}
+
+export async function createTransaksiLangsung(data: CreateTransaksiData) {
+  try {
+    const { produk, namaPembeli, harga, tanggal_transaksi, emailPembeli } = data;
+
+    if (!produk || !namaPembeli || !harga || !tanggal_transaksi) {
+      throw new Error("Data transaksi tidak lengkap");
+    }
+
+    const produkRes = await sql`
+      SELECT id FROM produk WHERE id = ${produk}
+    `;
+    if (produkRes.length === 0)
+      throw new Error(`Produk '${produk}' tidak ditemukan`);
+    const produk_id = produkRes[0].id;
+
+    let customer_id;
+    const customerRes = await sql`
+      SELECT id FROM customers WHERE name ILIKE ${namaPembeli}
+    `;
+    if (customerRes.length === 0) {
+      if (!emailPembeli) {
+        throw new Error("Email diperlukan untuk pelanggan baru");
+      }
+      const insertCustomer = await sql`
+        INSERT INTO customers (name, email)
+        VALUES (${namaPembeli}, ${emailPembeli})
+        RETURNING id
+      `;
+      customer_id = insertCustomer[0].id;
+    } else {
+      customer_id = customerRes[0].id;
+    }
+
+   const newId = (Date.now() % 100).toString().padStart(2, '0');
+// Hasil: 67, 23, 45, dll (selalu 2 digit)
+
+    const insertRes = await sql`
+      INSERT INTO transaksi (
+        id,
+        produk_id,
+        customer_id,
+        harga,
+        tanggal_transaksi
+      )
+      VALUES (
+        ${newId},
+        ${produk_id},
+        ${customer_id},
+        ${harga},
+        ${tanggal_transaksi}
+      )
+      RETURNING *
+    `;
+
+    return insertRes[0];
+  } catch (error) {
+    console.error("Detailed Database Error saat membuat transaksi:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : "No stack",
+      input: data,
+    });
+
+    throw new Error(
+      `Gagal membuat transaksi: ${
+        error instanceof Error ? error.message : "Kesalahan tidak dikenal"
+      }`
+    );
+  }
+}
+
+export async function deleteTransaksi(id: string) {
+  try {
+    // Check if transaction exists
+    const existingTransaksi = await sql`
+      SELECT * FROM transaksi WHERE id = ${id}
+    `;
+
+    if (existingTransaksi.length === 0) {
+      throw new Error(`Transaksi dengan ID ${id} tidak ditemukan`);
+    }
+
+    // Delete the transaction
+    const result = await sql`
+      DELETE FROM transaksi WHERE id = ${id}
+      RETURNING *
+    `;
+
+    console.log(`Transaksi dengan ID ${id} berhasil dihapus`);
+    return result[0];
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error(`Gagal menghapus transaksi: ${error instanceof Error ? error.message : 'Kesalahan tidak dikenal'}`);
   }
 }

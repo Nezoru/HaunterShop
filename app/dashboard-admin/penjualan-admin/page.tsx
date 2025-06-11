@@ -14,15 +14,17 @@ import { PenjualanSkeleton } from '@/app/ui/skeletons';
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  searchParams?: {
+  searchParams?: Promise<{
     query?: string;
     page?: string;
-  };
+  }>;
 }
 
 export default async function PenjualanPage({ searchParams }: Props) {
-  const query = searchParams?.query || '';
-  const currentPage = Number(searchParams?.page) || 1;
+  // Await searchParams terlebih dahulu
+  const resolvedSearchParams = await searchParams;
+  const query = resolvedSearchParams?.query || '';
+  const currentPage = Number(resolvedSearchParams?.page) || 1;
 
   // Jika ada query, gunakan fungsi filtered, jika tidak gunakan getAllTransaksiWithDetails
   const allTransaksi = query 
@@ -31,12 +33,13 @@ export default async function PenjualanPage({ searchParams }: Props) {
     
   const totalPages = query 
     ? await fetchTransaksiPages(query)
-    : Math.ceil((await getAllTransaksiWithDetails()).length / 6); // Assuming ITEMS_PER_PAGE = 6
+    : Math.ceil((await getAllTransaksiWithDetails()).length / 4); // Assuming ITEMS_PER_PAGE = 6
   
   return (
     <div className="bg-[#000000] min-h-screen p-6 text-white">
       <div className="flex flex-col space-y-4 mb-6">
         <div className="self-end">
+          <Link href="/dashboard-admin/profile">
           <button
             className={`bg-transparent text-white hover:bg-white/10 py-2 px-4 rounded border border-white
             ${shadowsIntoLightTwo.className}
@@ -44,6 +47,7 @@ export default async function PenjualanPage({ searchParams }: Props) {
           >
             Profile
           </button>
+          </Link>
         </div>
 
         <div className={`w-full flex justify-end items-center gap-4 mb-4 ${shadowsIntoLightTwo.className}`}>

@@ -23,8 +23,9 @@ export default async function KatalogPage(props: {
   return (
     <div className={`${poppins.className} p-6 bg-black min-h-screen`}>
       <div className="flex justify-end items-center mb-6">
-        <button className={`bg-transparent text-white hover:bg-white/10 py-2 px-4 rounded border border-white ${shadowsIntoLightTwo.className}`}>
+        <button className={`bg-transparent text-white hover:bg-white/10 py-2 px-4 rounded border border-white ${shadowsIntoLightTwo.className}`}> <Link href="./profile">
           Profile
+          </Link>
         </button>
       </div>
       

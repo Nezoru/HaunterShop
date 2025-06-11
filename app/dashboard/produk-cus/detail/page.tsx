@@ -49,10 +49,10 @@ export default function ProductDetail() {
               </p>
             </div>
             
-            <h2 className={`${newRocker.className} text-3xl mb-4 font-bold`}>Size Kostum</h2>
-            <div className="mb-6">
+            {/* <h2 className={`${newRocker.className} text-3xl mb-4 font-bold`}>Size Kostum</h2> */}
+            {/* <div className="mb-6"> */}
               {/* Change Size */}
-              <div className="relative">
+              {/* <div className="relative">
                 <select 
                   className={`${shadowsIntoLightTwo.className} w-full bg-transparent appearance-none outline-none border border-gray-300 rounded-lg p-4 pr-10`}
                   value={selectedSize}
@@ -63,8 +63,8 @@ export default function ProductDetail() {
                   <option value="L">L</option>
                   <option value="XL">XL</option>
                 </select>
-              </div>
-            </div>
+              </div> */}
+            {/* </div> */}
 
             <button className={`${shadowsIntoLightTwo.className} text-2xl bg-gray-300 hover:bg-gray-400 text-black py-3 px-6 rounded-lg flex items-center justify-center mt-auto`}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
