@@ -1,6 +1,6 @@
 // Loading animation
 const shimmer =
-  'before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent';
+  'before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-black/60 before:to-transparent';
 
 export function CardSkeleton() {
   return (
@@ -8,7 +8,7 @@ export function CardSkeleton() {
       className={`${shimmer} relative overflow-hidden rounded-xl bg-gray-100 p-2 shadow-sm`}
     >
       <div className="flex p-4">
-        <div className="h-5 w-5 rounded-md bg-gray-200" />
+        {/* <div className="h-5 w-5 rounded-md bg-gray-200" /> */}
         <div className="ml-2 h-6 w-16 rounded-md bg-gray-200 text-sm font-medium" />
       </div>
       <div className="flex items-center justify-center truncate rounded-xl bg-white px-4 py-8">
@@ -21,8 +21,6 @@ export function CardSkeleton() {
 export function CardsSkeleton() {
   return (
     <>
-      <CardSkeleton />
-      <CardSkeleton />
       <CardSkeleton />
       <CardSkeleton />
     </>
@@ -141,7 +139,7 @@ export function TableRowSkeleton() {
 
 export function InvoicesMobileSkeleton() {
   return (
-    <div className="mb-2 w-full rounded-md bg-white p-4">
+    <div className={`${shimmer}mb-2 w-full rounded-md bg-white p-4`}>
       <div className="flex items-center justify-between border-b border-gray-100 pb-8">
         <div className="flex items-center">
           <div className="mr-2 h-8 w-8 rounded-full bg-gray-100"></div>
@@ -211,6 +209,135 @@ export function InvoicesTableSkeleton() {
               <TableRowSkeleton />
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function KatalogSkeleton() {
+  // Create 5 skeleton rows (matching itemsPerPage in the original component)
+  return (
+     <div className={`${shimmer} overflow-x-auto bg-gray-100 rounded-lg`}>
+      <table className="min-w-full">
+        <thead className="text-white border border-white">
+          <tr>
+            <th className="px-6 py-3 text-left text-sm font-medium">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-8"></div>
+            </th>
+            <th className="px-6 py-3 text-left text-sm font-medium">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+            </th>
+            <th className="px-6 py-3 text-left text-sm font-medium">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-12"></div>
+            </th>
+            <th className="px-6 py-3 text-left text-sm font-medium">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-10"></div>
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {[...Array(5)].map((_, index) => (
+            <tr key={index} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-12"></div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex items-center">
+                  <div className="h-20 w-20 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="ml-4">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex space-x-2">
+                  <div className="h-8 bg-gray-200 rounded animate-pulse w-16"></div>
+                  <div className="h-8 bg-gray-200 rounded animate-pulse w-16"></div>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Pagination Skeleton */}
+      <div className="flex justify-center p-4 bg-white">
+        <div className="flex space-x-1">
+          {[...Array(2)].map((_, index) => (
+            <div key={index} className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function PenjualanSkeleton() {
+  // Create skeleton rows (adjust number based on typical display)
+  return (
+    <div className={`${shimmer} overflow-x-auto bg-white rounded-lg`}>
+      <table className="min-w-full">
+        <thead className="text-white border border-white">
+          <tr>
+            <th className="px-6 py-3 text-left text-sm font-medium">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-8"></div>
+            </th>
+            <th className="px-6 py-3 text-left text-sm font-medium">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-16"></div>
+            </th>
+            <th className="px-6 py-3 text-left text-sm font-medium">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-12"></div>
+            </th>
+            <th className="px-6 py-3 text-left text-sm font-medium">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+            </th>
+            <th className="px-6 py-3 text-left text-sm font-medium">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
+            </th>
+            <th className="px-6 py-3 text-left text-sm font-medium">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-10"></div>
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {[...Array(5)].map((_, index) => (
+            <tr key={index} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-8"></div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-20"></div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-28"></div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex space-x-2">
+                  <div className="h-8 bg-gray-200 rounded animate-pulse w-16"></div>
+                  <div className="h-8 bg-gray-200 rounded animate-pulse w-16"></div>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      
+      {/* Pagination Skeleton */}
+      <div className="p-4 flex justify-center">
+        <div className="flex space-x-1">
+          {[...Array(2)].map((_, index) => (
+            <div key={index} className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
+          ))}
         </div>
       </div>
     </div>

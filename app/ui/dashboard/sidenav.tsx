@@ -78,8 +78,8 @@ export default function SideNav() {
           </div>
         </div>
         
-        <Link href="/" className={`${shadowsIntoLightTwo.className} justify-start text-white text-2xl font-normal px-10 py-4 outline outline-[2.67px] outline-offset-[-2.67px] outline-white hover:text-black-300 border border-white rounded hover:bg-white hover:text-black transition-colors`}>
-          Login
+        <Link href="/dashboard/profile" className={`${shadowsIntoLightTwo.className} justify-start text-white text-2xl font-normal px-10 py-4 outline outline-[2.67px] outline-offset-[-2.67px] outline-white hover:text-black-300 border border-white rounded hover:bg-white hover:text-black transition-colors`}>
+          Profile
         </Link>
       </nav>
     </div>

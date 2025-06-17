@@ -1,7 +1,7 @@
 // app/lib/actions.ts  
 'use server';  
 
-import { unstable_noStore as noStore } from 'next/cache';  
+import { unstable_noStore as noStore } from 'next/cache';
 
 let mockPenjualan = [
     { id: 1, tanggal: '2024-03-23', harga: 250000, nama_pembeli: 'Jajang', produk_dibeli: 'Casper  ' },

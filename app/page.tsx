@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { newRocker, shadowsIntoLightTwo } from '@/app/ui/fonts';
+import { newRocker, shadowsIntoLightTwo } from './ui/fonts';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,39 +14,40 @@ const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
     
     try {
-      
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Kondisi 1: Admin
-      if (email === 'admin123@example.com' && password === '12345') {
-        console.log('Admin login successful');
-        router.push('/dashboard-admin');
-        return;
-      }
-      
-      // Kondisi 2: User
-      if (email === 'user123@example.com' && password === '12345') {
-        console.log('User login successful');
-        router.push('/dashboard');
-        return;
-      }
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Kondisi 1: Admin
+        if (email === 'admin123@example.com' && password === '12345') {
+            console.log('Admin login successful');
+            document.cookie = "role=admin";
+            router.push('/dashboard-admin');
+            return;
+        }
+        
+        // Kondisi 2: User
+        if (email === 'user123@example.com' && password === '12345') {
+            console.log('User  login successful');
+            document.cookie = "role=user"; 
+            router.push('/dashboard');
+            return;
+        }
 
-      setError('Username atau password tidak sesuai');
-      console.log('Login failed: Invalid credentials');
-      
+        setError('Username atau password tidak sesuai');
+        console.log('Login failed: Invalid credentials');
+        
     } catch (error) {
-      console.error('Login error:', error);
-      setError('Terjadi kesalahan saat login. Silakan coba lagi.');
+        console.error('Login error:', error);
+        setError('Terjadi kesalahan saat login. Silakan coba lagi.');
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+};
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-black">
@@ -56,15 +57,23 @@ const LoginForm: React.FC = () => {
             <Image 
               src="/Ghost01.png" 
               alt="Haunter Shop" 
-              width={75} 
-              height={75} 
+              width={80} 
+              height={80} 
               className="mx-auto"
             />
-            <h1 className={`${shadowsIntoLightTwo.className} text-3xl text-white mt-2`}>Haunter Shop</h1>
+            <h1 className={`${shadowsIntoLightTwo.className} text-white text-4xl mt-5`}>Haunter Shop</h1>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-lg p-8">          
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          {/* <div className="mb-1">
+            <button className="text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div> */}
+          
           <h2 className={`${newRocker.className} text-2xl font-bold mb-2`}>Login</h2>
           <p className={`${newRocker.className} text-sm text-gray-600 mb-6`}>Belum mempunyai akun? <Link href="/auth/register" className="text-black font-medium">Daftar</Link></p>
           
