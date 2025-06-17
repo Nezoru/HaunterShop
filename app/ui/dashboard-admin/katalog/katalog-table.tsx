@@ -35,13 +35,13 @@ export default async function KatalogTable({
   return (
     <div className="overflow-x-auto bg-white rounded-lg">
       {/* Search Results Info */}
-      {query && (
+      {/* {query && (
         <div className={`p-4 bg-gray-50 border-b ${shadowsIntoLightTwo.className}`}>
           <p className="text-sm text-gray-600">
             Menampilkan {products.length} dari {totalItems} hasil untuk "{query}"
           </p>
         </div>
-      )}
+      )} */}
 
       <table className="min-w-full">
         <thead className="bg-black text-white border border-white">

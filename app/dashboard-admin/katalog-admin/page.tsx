@@ -21,7 +21,7 @@ export default async function KatalogPage(props: {
   const allProduk = await getAllProduk();
   
   return (
-    <div className={`${poppins.className} p-6 bg-black min-h-screen`}>
+    <div className={`${shadowsIntoLightTwo.className} p-6 bg-black min-h-screen`}>
       <div className="flex justify-end items-center mb-6">
         <button className={`bg-transparent text-white hover:bg-white/10 py-2 px-4 rounded border border-white ${shadowsIntoLightTwo.className}`}> <Link href="./profile">
           Profile
@@ -29,7 +29,7 @@ export default async function KatalogPage(props: {
         </button>
       </div>
       
-      <div className="w-full flex justify-end items-center gap-4 mb-4">
+      <div className={`w-full flex justify-end items-center gap-4 mb-4 ${shadowsIntoLightTwo.className}`}>
         <Search placeholder="Cari Disini" />  
         <Link   
           href="/dashboard-admin/katalog-admin/tambah"   

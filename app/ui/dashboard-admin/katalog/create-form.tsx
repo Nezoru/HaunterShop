@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useRef, useTransition } from 'react';
+import { useState, useRef, useTransition, useEffect } from 'react';
 import { createProdukAction } from '@/app/lib/actions';
 import { shadowsIntoLightTwo, newRocker } from '@/app/ui/fonts';
 import Link from 'next/link';
@@ -17,14 +17,39 @@ export default function CreateProdukForm() {
       stok?: string[];
     };
     message?: string | null;
-  }>({ errors: {}, message: null });
+    success?: boolean;
+  }>({ errors: {}, message: null, success: false });
+  
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Handle success message display
+  useEffect(() => {
+    if (state.success) {
+      setShowSuccessMessage(true);
+      // Reset form after successful submission
+      if (formRef.current) {
+        formRef.current.reset();
+      }
+      setSelectedFile(null);
+      setImagePreview('');
+      
+      // Hide success message after 5 seconds
+      const timer = setTimeout(() => {
+        setShowSuccessMessage(false);
+        setState({ errors: {}, message: null, success: false });
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [state.success]);
 
   const handleFileSelect = (file: File) => {
-    if (file && file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024) {
+    if (file && file.type.startsWith('image/') && file.size <= 10 * 1024 * 1024) {
       setSelectedFile(file);
       
       // Create preview
@@ -33,8 +58,19 @@ export default function CreateProdukForm() {
         setImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+      
+      // Clear image error if file is selected
+      if (state.errors?.image_produk) {
+        setState(prev => ({
+          ...prev,
+          errors: {
+            ...prev.errors,
+            image_produk: undefined
+          }
+        }));
+      }
     } else {
-      alert('Pilih file gambar dengan ukuran maksimal 5MB');
+      alert('Pilih file gambar dengan ukuran maksimal 10MB');
     }
   };
 
@@ -69,97 +105,154 @@ export default function CreateProdukForm() {
   };
 
   const handleSubmit = async (formData: FormData) => {
+    // Clear previous messages
+    setShowSuccessMessage(false);
+    
     startTransition(async () => {
       const result = await createProdukAction(state, formData);
       setState(result);
     });
   };
 
+  // Success Message Component
+  const SuccessMessage = () => (
+    showSuccessMessage && (
+      <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3">
+        <div className="text-2xl">✅</div>
+        <div>
+          <p className={`font-medium ${newRocker.className}`}>Berhasil!</p>
+          <p className="text-sm opacity-90">Produk berhasil ditambahkan</p>
+        </div>
+      </div>
+    )
+  );
+
+  // Error Alert Component
+  const ErrorAlert = () => (
+    state.message && !state.success && (
+      <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="flex items-center gap-3">
+          {/* <div className="text-red-500 text-xl">❌</div> */}
+          <div>
+            {/* <h3 className={`text-red-800 font-medium ${newRocker.className}`}>
+              Gagal Menambahkan Produk
+            </h3> */}
+            <p className="text-red-600 text-1xl mt-1">
+              {state.message}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
   return (
-    <div className="flex min-h-screen bg-black">
+    <div className="w-full min-h-screen bg-black">
+      <SuccessMessage />
+      
       {/* Main Content */}
-      <div className="flex-1 p-8">
-        <div className="bg-white rounded-lg p-8 max-w-6xl">
+      <div className="mb-8">
+        <div className="bg-white rounded-lg p-8 w-full">
           <h1 className={`text-4xl text-black mb-8 ${shadowsIntoLightTwo.className}`}>
             Tambah Produk
           </h1>
 
-          <form action={handleSubmit}>
-           <div className="grid grid-cols-3 gap-8 mb-6">
-                {/* Nama Produk - tetap sama */}
-                <div>
-                    <label className={`block text-black text-base mb-2 ${newRocker.className}`}>
-                    Nama Produk
-                    </label>
-                    <input
-                    id="nama_produk"
-                    name="nama_produk"
-                    type="text"
-                    placeholder="Masukkan Nama Produk"
-                    className={`w-full h-14 bg-slate-50 rounded-xl shadow-inner border border-slate-300 px-4 py-3 text-black placeholder-gray-400 text-base ${newRocker.className} focus:outline-none focus:ring-2 focus:ring-lime-400`}
-                    aria-describedby="nama_produk-error"
-                    />
-                    <div id="nama_produk-error" aria-live="polite" aria-atomic="true">
-                    {state.errors?.nama_produk &&
-                        state.errors.nama_produk.map((error: string) => (
-                        <p className="mt-2 text-sm text-red-500" key={error}>
-                            {error}
-                        </p>
-                        ))}
-                    </div>
-                </div>
+          <ErrorAlert />
 
-                {/* Harga Produk - tetap sama */}
-                <div>
-                    <label className={`block text-black text-base mb-2 ${newRocker.className}`}>
-                    Harga Produk
-                    </label>
-                    <input
-                    id="harga_produk"
-                    name="harga_produk"
-                    type="number"
-                    step="1"
-                    min="0"
-                    placeholder="Masukkan Harga"
-                    className={`w-full h-14 bg-slate-50 rounded-xl shadow-inner border border-slate-300 px-4 py-3 text-black placeholder-gray-400 text-base ${newRocker.className} focus:outline-none focus:ring-2 focus:ring-lime-400`}
-                    aria-describedby="harga_produk-error"
-                    />
-                    <div id="harga_produk-error" aria-live="polite" aria-atomic="true">
-                    {state.errors?.harga_produk &&
-                        state.errors.harga_produk.map((error: string) => (
-                        <p className="mt-2 text-sm text-red-500" key={error}>
-                            {error}
-                        </p>
-                        ))}
+          <form ref={formRef} action={handleSubmit}>
+            <div className="grid grid-cols-3 gap-8 mb-6">
+              {/* Nama Produk */}
+              <div>
+                <label className={`block text-black text-base mb-2 ${newRocker.className}`}>
+                  Nama Produk
+                </label>
+                <input
+                  id="nama_produk"
+                  name="nama_produk"
+                  type="text"
+                  placeholder="Masukkan Nama Produk"
+                  className={`w-full h-14 bg-slate-50 rounded-xl shadow-inner border px-4 py-3 text-black placeholder-gray-400 text-base ${newRocker.className} focus:outline-none focus:ring-2 transition-all ${
+                    state.errors?.nama_produk 
+                      ? 'border-red-300 focus:ring-red-400' 
+                      : 'border-slate-300 focus:ring-lime-400'
+                  }`}
+                  aria-describedby="nama_produk-error"
+                />
+                <div id="nama_produk-error" aria-live="polite" aria-atomic="true">
+                  {state.errors?.nama_produk && (
+                    <div className="mt-2 flex items-center gap-2">
+                      {/* <span className="text-red-500 text-sm">⚠️</span> */}
+                      <p className="text-sm text-red-600">
+                        {state.errors.nama_produk[0]}
+                      </p>
                     </div>
+                  )}
                 </div>
+              </div>
 
-                {/* TAMBAH INPUT STOK - BARU */}
-                <div>
-                    <label className={`block text-black text-base mb-2 ${newRocker.className}`}>
-                    Stok
-                    </label>
-                    <input
-                    id="stok"
-                    name="stok"
-                    type="number"
-                    step="1"
-                    min="0"
-                    defaultValue="0"
-                    placeholder="Masukkan Stok"
-                    className={`w-full h-14 bg-slate-50 rounded-xl shadow-inner border border-slate-300 px-4 py-3 text-black placeholder-gray-400 text-base ${newRocker.className} focus:outline-none focus:ring-2 focus:ring-lime-400`}
-                    aria-describedby="stok-error"
-                    />
-                    <div id="stok-error" aria-live="polite" aria-atomic="true">
-                    {state.errors?.stok &&
-                        state.errors.stok.map((error: string) => (
-                        <p className="mt-2 text-sm text-red-500" key={error}>
-                            {error}
-                        </p>
-                        ))}
+              {/* Harga Produk */}
+              <div>
+                <label className={`block text-black text-base mb-2 ${newRocker.className}`}>
+                  Harga Produk
+                </label>
+                <input
+                  id="harga_produk"
+                  name="harga_produk"
+                  type="number"
+                  step="1"
+                  min="0"
+                  placeholder="Masukkan Harga"
+                  className={`w-full h-14 bg-slate-50 rounded-xl shadow-inner border px-4 py-3 text-black placeholder-gray-400 text-base ${newRocker.className} focus:outline-none focus:ring-2 transition-all ${
+                    state.errors?.harga_produk 
+                      ? 'border-red-300 focus:ring-red-400' 
+                      : 'border-slate-300 focus:ring-lime-400'
+                  }`}
+                  aria-describedby="harga_produk-error"
+                />
+                <div id="harga_produk-error" aria-live="polite" aria-atomic="true">
+                  {state.errors?.harga_produk && (
+                    <div className="mt-2 flex items-center gap-2">
+                      {/* <span className="text-red-500 text-sm">⚠️</span> */}
+                      <p className="text-sm text-red-600">
+                        {state.errors.harga_produk[0]}
+                      </p>
                     </div>
+                  )}
                 </div>
+              </div>
+
+              {/* Stok */}
+              <div>
+                <label className={`block text-black text-base mb-2 ${newRocker.className}`}>
+                  Stok
+                </label>
+                <input
+                  id="stok"
+                  name="stok"
+                  type="number"
+                  step="1"
+                  min="0"
+                  defaultValue="0"
+                  placeholder="Masukkan Stok"
+                  className={`w-full h-14 bg-slate-50 rounded-xl shadow-inner border px-4 py-3 text-black placeholder-gray-400 text-base ${newRocker.className} focus:outline-none focus:ring-2 transition-all ${
+                    state.errors?.stok 
+                      ? 'border-red-300 focus:ring-red-400' 
+                      : 'border-slate-300 focus:ring-lime-400'
+                  }`}
+                  aria-describedby="stok-error"
+                />
+                <div id="stok-error" aria-live="polite" aria-atomic="true">
+                  {state.errors?.stok && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="text-red-500 text-sm">⚠️</span>
+                      <p className="text-sm text-red-600">
+                        {state.errors.stok[0]}
+                      </p>
+                    </div>
+                  )}
                 </div>
+              </div>
+            </div>
 
             {/* Image Upload */}
             <div className="mb-6">
@@ -168,7 +261,11 @@ export default function CreateProdukForm() {
               </label>
               <div
                 className={`w-full h-64 bg-slate-50 rounded-xl border-2 border-dashed transition-colors cursor-pointer ${
-                  isDragOver ? 'border-lime-400 bg-lime-50' : 'border-slate-300'
+                  state.errors?.image_produk
+                    ? 'border-red-300 bg-red-50'
+                    : isDragOver 
+                      ? 'border-lime-400 bg-lime-50' 
+                      : 'border-slate-300'
                 }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -203,7 +300,7 @@ export default function CreateProdukForm() {
                 </div>
               </div>
               <p className={`text-gray-400 text-base mt-2 ${newRocker.className}`}>
-                PNG, JPG, up to 5MB
+                PNG, JPG, up to 10MB
               </p>
               <input
                 ref={fileInputRef}
@@ -221,22 +318,15 @@ export default function CreateProdukForm() {
               />
               
               <div id="image_produk-error" aria-live="polite" aria-atomic="true">
-                {state.errors?.image_produk &&
-                  state.errors.image_produk.map((error: string) => (
-                    <p className="mt-2 text-sm text-red-500" key={error}>
-                      {error}
+                {state.errors?.image_produk && (
+                  <div className="mt-2 flex items-center gap-2">
+                    {/* <span className="text-red-500 text-sm">⚠️</span> */}
+                    <p className="text-sm text-red-600">
+                      {state.errors.image_produk[0]}
                     </p>
-                  ))}
+                  </div>
+                )}
               </div>
-            </div>
-
-            {/* General Error Message */}
-            <div id="form-error" aria-live="polite" aria-atomic="true">
-              {state.message && (
-                <p className="mt-2 text-sm text-red-500">
-                  {state.message}
-                </p>
-              )}
             </div>
 
             {/* Buttons */}
@@ -244,11 +334,20 @@ export default function CreateProdukForm() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-96 h-16 bg-lime-400 hover:bg-lime-500 rounded-xl border border-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-96 h-16 bg-lime-400 hover:bg-lime-500 rounded-xl border border-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                <span className={`text-white text-2xl font-normal ${newRocker.className}`}>
-                  {isPending ? 'MENYIMPAN...' : 'TAMBAH'}
-                </span>
+                {isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                    <span className={`text-white text-2xl font-normal ${newRocker.className}`}>
+                      MENYIMPAN...
+                    </span>
+                  </>
+                ) : (
+                  <span className={`text-white text-2xl font-normal ${newRocker.className}`}>
+                    TAMBAH
+                  </span>
+                )}
               </button>
 
               <Link

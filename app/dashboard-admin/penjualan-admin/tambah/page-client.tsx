@@ -15,6 +15,14 @@ interface TambahPenjualanPageProps {
   produkList: Produk[];
 }
 
+// State type untuk error handling
+type FormErrors = {
+  produk?: string[];
+  namaPembeli?: string[];
+  emailPembeli?: string[];
+  tanggal?: string[];
+};
+
 export default function TambahPenjualanPage({ produkList }: TambahPenjualanPageProps) {
   const [produk, setProduk] = useState('');
   const [harga, setHarga] = useState('');
@@ -22,118 +30,271 @@ export default function TambahPenjualanPage({ produkList }: TambahPenjualanPageP
   const [emailPembeli, setEmailPembeli] = useState('');
   const [tanggal, setTanggal] = useState('');
   
+  // State untuk error handling
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  
   const router = useRouter();
 
   const handleProdukChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedProduk = produkList.find(p => p.id === e.target.value);
     setProduk(e.target.value);
-     setHarga(selectedProduk?.harga_produk?.toString() || ''); // jika ada harga di produkList
+    setHarga(selectedProduk?.harga_produk?.toString() || '');
+    
+    // Clear error untuk field produk ketika user memilih produk
+    if (errors.produk) {
+      setErrors(prev => ({ ...prev, produk: undefined }));
+    }
+  };
+
+  // Function untuk clear error ketika user mengetik
+  const clearFieldError = (fieldName: keyof FormErrors) => {
+    if (errors[fieldName]) {
+      setErrors(prev => ({ ...prev, [fieldName]: undefined }));
+    }
+  };
+
+  // Validation function
+  const validateForm = (): FormErrors => {
+    const newErrors: FormErrors = {};
+
+    // Validasi nama pembeli
+    if (!namaPembeli || namaPembeli.trim() === '') {
+      newErrors.namaPembeli = ['Nama pembeli harus diisi!'];
+    }
+
+    // Validasi email pembeli
+    if (!emailPembeli || emailPembeli.trim() === '') {
+      newErrors.emailPembeli = ['Email pembeli harus diisi!'];
+    } else {
+      // Validasi format email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailPembeli)) {
+        newErrors.emailPembeli = ['Format email tidak valid!'];
+      }
+    }
+
+    // Validasi tanggal
+    if (!tanggal || tanggal.trim() === '') {
+      newErrors.tanggal = ['Tanggal transaksi harus diisi!'];
+    }
+
+    // Validasi produk
+    if (!produk || produk.trim() === '') {
+      newErrors.produk = ['Produk harus dipilih!'];
+    }
+
+    return newErrors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setMessage(null);
+
+    // Validasi form
+    const formErrors = validateForm();
+    
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      setMessage('Gagal menambahkan penjualan. Periksa form di bawah!');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Clear errors jika validasi berhasil
+    setErrors({});
 
     try {
       await tambahTransaksi({
         produk,
-        namaPembeli,
-        emailPembeli,
+        namaPembeli: namaPembeli.trim(),
+        emailPembeli: emailPembeli.trim(),
         harga: Number(harga),
         tanggal,
       });
       router.push('/dashboard-admin/penjualan-admin');
     } catch (error) {
       console.error('Gagal simpan transaksi:', error);
-      alert('Gagal menyimpan transaksi');
+      setMessage('Gagal menyimpan transaksi. Silakan coba lagi.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
+  
   return (
-    <div className="w-full max-w-[1444px] h-[700px] relative bg-white rounded-[10px] overflow-hidden">
-      <h1 className={`absolute left-[26px] top-[25px] text-black text-4xl font-normal ${shadowsIntoLightTwo.className}`}>
-        Tambah Penjualan
-      </h1>
+    <div className="w-full justify-center bg-white rounded-[10px] p-6 overflow-hidden">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className={`text-black text-4xl font-normal ${shadowsIntoLightTwo.className}`}>
+          Tambah Transaksi
+        </h1>
+      </div>
 
-
-      <label className="absolute left-[64px] top-[94px] text-black text-base font-['New_Rocker']">Nama Produk</label>
-      <select
-        value={produk}
-        onChange={handleProdukChange}
-        className="absolute left-[51px] top-[117px] w-[761px] h-14 bg-slate-50 rounded-xl shadow-[inset_0_2px_0_0_rgba(231,235,238,0.20)] outline outline-1 outline-offset-[-1px] outline-slate-300 px-4 text-black/80 font-['New_Rocker']"
-      >
-        <option value="">-- Pilih Produk --</option>
-        {produkList.map(p => (
-          <option key={p.id} value={p.id}>
-            {p.nama_produk}
-          </option>
-        ))}
-      </select>
-
-      <label className="absolute left-[840px] top-[89px] text-black text-base font-['New_Rocker']">Harga Produk</label>
-      <input
-        type="text"
-        value={harga}
-        readOnly
-        placeholder="Harga Otomatis"
-        className="absolute left-[830px] top-[117px] w-80 h-14 bg-gray-200 rounded-xl shadow-[inset_0_2px_0_0_rgba(231,235,238,0.20)] outline outline-1 outline-offset-[-1px] outline-slate-300 px-4 text-black/80 font-['New_Rocker']"
-      />
-
-
-      {/* List Produk
-      <div className="absolute left-[51px] top-[219px] w-[1263px] h-44 bg-slate-50 rounded-xl shadow-[inset_0_2px_0_0_rgba(231,235,238,0.20)] outline outline-1 outline-offset-[-1px] outline-slate-300">
-        <p className="absolute left-[13px] top-[-20px] text-black text-base font-['New_Rocker']">List Produk Pembelian</p>
-        <div className="absolute left-[17px] top-[15px] w-3.5 h-3.5 bg-white border border-black" />
-        <div className="absolute left-[61px] top-[8px] w-96 px-3 py-2.5 inline-flex items-center gap-2.5">
-          <span className="text-black/40 text-base font-['New_Rocker']">Nama Produk</span>
+      {/* Error Message */}
+      {message && (
+        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          {message}
         </div>
-        <div className="absolute left-[17px] top-[47px] w-[1220px] h-[1px] bg-zinc-400" />
+      )}
 
-      </div> */}
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8">
+        {/* Baris Pertama: Informasi Pembeli */}
+        <div className="flex flex-wrap gap-6">
+          {/* Nama Pembeli */}
+          <div className="flex flex-col flex-1 min-w-[280px]">
+            <label className="text-black text-base font-['New_Rocker'] mb-2">
+              Nama Pembeli
+            </label>
+            <input
+              type="text"
+              value={namaPembeli}
+              onChange={(e) => {
+                setNamaPembeli(e.target.value);
+                clearFieldError('namaPembeli');
+              }}
+              placeholder="Masukkan Nama Pembeli"
+              className={`h-14 bg-slate-50 rounded-xl shadow-[inset_0_2px_0_0_rgba(231,235,238,0.20)] outline outline-1 outline-offset-[-1px] px-4 text-black/80 font-['New_Rocker'] ${
+                errors.namaPembeli ? 'outline-red-500 bg-red-50' : 'outline-slate-300'
+              }`}
+            />
+            {errors.namaPembeli && (
+              <div className="mt-2 text-sm text-red-600">
+                {errors.namaPembeli.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
+              </div>
+            )}
+          </div>
 
-      {/* Nama Pembeli */}
-      <label className="absolute left-[64px] top-[470px] text-black text-base font-['New_Rocker']">Nama Pembeli</label>
-      <input
-        type="text"
-        value={namaPembeli}
-        onChange={(e) => setNamaPembeli(e.target.value)}
-        placeholder="Masukkan Nama Pembeli"
-        className="absolute left-[51px] top-[495px] w-80 h-14 bg-slate-50 rounded-xl shadow-[inset_0_2px_0_0_rgba(231,235,238,0.20)] outline outline-1 outline-offset-[-1px] outline-slate-300 px-4 text-black/80 font-['New_Rocker']"
-      />
+          {/* Email Pembeli */}
+          <div className="flex flex-col flex-1 min-w-[280px]">
+            <label className="text-black text-base font-['New_Rocker'] mb-2">
+              Email Pembeli
+            </label>
+            <input
+              type="email"
+              value={emailPembeli}
+              onChange={(e) => {
+                setEmailPembeli(e.target.value);
+                clearFieldError('emailPembeli');
+              }}
+              placeholder="Masukkan Email Pembeli"
+              className={`h-14 bg-slate-50 rounded-xl shadow-[inset_0_2px_0_0_rgba(231,235,238,0.20)] outline outline-1 outline-offset-[-1px] px-4 text-black/80 font-['New_Rocker'] ${
+                errors.emailPembeli ? 'outline-red-500 bg-red-50' : 'outline-slate-300'
+              }`}
+            />
+            {errors.emailPembeli && (
+              <div className="mt-2 text-sm text-red-600">
+                {errors.emailPembeli.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
+              </div>
+            )}
+          </div>
 
-      <label className="absolute left-[400px] top-[470px] text-black text-base font-['New_Rocker']">Email Pembeli</label>
-      <input
-        type="email"
-        value={emailPembeli}
-        onChange={(e) => setEmailPembeli(e.target.value)}
-        placeholder="Masukkan Email Pembeli"
-        className="absolute left-[400px] top-[496px] w-80 h-14 bg-slate-50 rounded-xl shadow-[inset_0_2px_0_0_rgba(231,235,238,0.20)] outline outline-1 outline-offset-[-1px] outline-slate-300 px-4 text-black/80 font-['New_Rocker']"
-      />
+          {/* Tanggal Transaksi */}
+          <div className="flex flex-col flex-1 min-w-[280px]">
+            <label className="text-black text-base font-['New_Rocker'] mb-2">
+              Tanggal Transaksi
+            </label>
+            <input
+              type="date"
+              value={tanggal}
+              onChange={(e) => {
+                setTanggal(e.target.value);
+                clearFieldError('tanggal');
+              }}
+              className={`h-14 bg-slate-50 rounded-xl shadow-[inset_0px_2px_0px_0px_rgba(231,235,238,0.20)] outline outline-1 outline-offset-[-1px] px-4 text-black ${newRocker.className} ${
+                errors.tanggal ? 'outline-red-500 bg-red-50' : 'outline-slate-300'
+              }`}
+            />
+            {errors.tanggal && (
+              <div className="mt-2 text-sm text-red-600">
+                {errors.tanggal.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
+        {/* Baris Kedua: Informasi Produk */}
+        <div className="flex flex-wrap gap-6">
+          {/* Select Produk */}
+          <div className="flex flex-col flex-[2] min-w-[400px]">
+            <label className="text-black text-base font-['New_Rocker'] mb-2">
+              Nama Produk
+            </label>
+            <select
+              value={produk}
+              onChange={handleProdukChange}
+              className={`h-14 bg-slate-50 rounded-xl shadow-[inset_0_2px_0_0_rgba(231,235,238,0.20)] outline outline-1 outline-offset-[-1px] px-4 text-black/80 font-['New_Rocker'] ${
+                errors.produk ? 'outline-red-500 bg-red-50' : 'outline-slate-300'
+              }`}
+            >
+              <option value="">-- Pilih Produk --</option>
+              {produkList.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.nama_produk}
+                </option>
+              ))}
+            </select>
+            {errors.produk && (
+              <div className="mt-2 text-sm text-red-600">
+                {errors.produk.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
+              </div>
+            )}
+          </div>
 
-      {/* Tanggal Penjualan */}
-      <label className="absolute right-[64px] top-[472px] text-black text-base font-['New_Rocker']">Tanggal Penjualan</label>
-      <input
-        type="date"
-        value={tanggal}
-        onChange={(e) => setTanggal(e.target.value)}
-        className={`w-80 h-14 absolute right-[60px] top-[495px] bg-slate-50 rounded-xl shadow-[inset_0px_2px_0px_0px_rgba(231,235,238,0.20)] outline outline-1 outline-offset-[-1px] outline-slate-300 px-4 text-black ${newRocker.className}`}
-      />
+          {/* Harga Produk */}
+          <div className="flex flex-col flex-1 min-w-[280px]">
+            <label className="text-black text-base font-['New_Rocker'] mb-2">
+              Harga Produk
+            </label>
+            <input
+              type="text"
+              value={harga}
+              readOnly
+              placeholder="Harga Otomatis"
+              className="h-14 bg-gray-200 rounded-xl shadow-[inset_0_2px_0_0_rgba(231,235,238,0.20)] outline outline-1 outline-offset-[-1px] outline-slate-300 px-4 text-black/80 font-['New_Rocker']"
+            />
+          </div>
+        </div>
 
-      {/* Tombol TAMBAH */}
-      <button
-        onClick={handleSubmit}
-        className="absolute left-[248px] top-[581px] w-[485px] h-16 bg-lime-400 rounded-xl border border-black"
-      >
-        <span className="text-white text-2xl font-['New_Rocker']">TAMBAH</span>
-      </button>
+        {/* Tombol Actions */}
+        <div className="flex justify-center gap-6 mt-8">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`w-96 h-16 rounded-xl border border-black transition-colors ${
+              isSubmitting 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-lime-400 hover:bg-lime-500'
+            }`}
+          >
+            <span className="text-white text-2xl font-['New_Rocker']">
+              {isSubmitting ? 'MENYIMPAN...' : 'TAMBAH'}
+            </span>
+          </button>
 
-      {/* Tombol BATAL */}
-      <button
-        type="button"
-        onClick={() => router.push('/dashboard-admin/penjualan-admin')}
-        className="absolute left-[753px] top-[581px] w-[485px] h-16 bg-red-600 rounded-xl border border-black"
-      >
-        <span className="text-white text-2xl font-['New_Rocker']">BATAL</span>
-      </button>
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard-admin/penjualan-admin')}
+            disabled={isSubmitting}
+            className={`w-96 h-16 rounded-xl border border-black transition-colors ${
+              isSubmitting 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-red-600 hover:bg-red-700'
+            }`}
+          >
+            <span className="text-white text-2xl font-['New_Rocker']">BATAL</span>
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

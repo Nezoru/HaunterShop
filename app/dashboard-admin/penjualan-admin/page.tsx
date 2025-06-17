@@ -1,14 +1,8 @@
-import React from 'react';
+// app/dashboard-admin/penjualan-admin/page.tsx
+import React, { Suspense } from 'react';
 import Search from '@/app/ui/dashboard-admin/penjualan/search';
-import PenjualanTable from '@/app/ui/dashboard-admin/penjualan/penjualan-table';
 import { shadowsIntoLightTwo } from '@/app/ui/fonts';
 import Link from 'next/link';
-import { 
-  getAllTransaksiWithDetails, 
-  fetchFilteredTransaksi, 
-  fetchTransaksiPages 
-} from '@/app/lib/data';
-import { Suspense } from 'react';
 import { PenjualanSkeleton } from '@/app/ui/skeletons';
 
 export const dynamic = 'force-dynamic';
@@ -20,33 +14,51 @@ interface Props {
   }>;
 }
 
+// Buat component terpisah untuk data fetching
+async function PenjualanContent({ 
+  query, 
+  currentPage 
+}: { 
+  query: string; 
+  currentPage: number; 
+}) {
+  const { getPaginatedSearchTransaksi } = await import('@/app/lib/data');
+  const PenjualanTable = (await import('@/app/ui/dashboard-admin/penjualan/penjualan-table')).default;
+  
+  const itemsPerPage = 5;
+  
+  // Tambahkan artificial delay untuk demonstrasi skeleton
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  const paginatedResult = await getPaginatedSearchTransaksi(query, currentPage, itemsPerPage);
+  
+  return (
+    <PenjualanTable
+      allTransaksi={paginatedResult.transactions}
+      totalPages={paginatedResult.totalPages}
+      currentPage={currentPage}
+      totalItems={paginatedResult.totalItems}
+    />
+  );
+}
+
 export default async function PenjualanPage({ searchParams }: Props) {
-  // Await searchParams terlebih dahulu
   const resolvedSearchParams = await searchParams;
   const query = resolvedSearchParams?.query || '';
   const currentPage = Number(resolvedSearchParams?.page) || 1;
 
-  // Jika ada query, gunakan fungsi filtered, jika tidak gunakan getAllTransaksiWithDetails
-  const allTransaksi = query 
-    ? await fetchFilteredTransaksi(query, currentPage)
-    : await getAllTransaksiWithDetails();
-    
-  const totalPages = query 
-    ? await fetchTransaksiPages(query)
-    : Math.ceil((await getAllTransaksiWithDetails()).length / 4); // Assuming ITEMS_PER_PAGE = 6
-  
   return (
     <div className="bg-[#000000] min-h-screen p-6 text-white">
       <div className="flex flex-col space-y-4 mb-6">
         <div className="self-end">
           <Link href="/dashboard-admin/profile">
-          <button
-            className={`bg-transparent text-white hover:bg-white/10 py-2 px-4 rounded border border-white
-            ${shadowsIntoLightTwo.className}
-            `}
-          >
-            Profile
-          </button>
+            <button
+              className={`bg-transparent text-white hover:bg-white/10 py-2 px-4 rounded border border-white
+              ${shadowsIntoLightTwo.className}
+              `}
+            >
+              Profile
+            </button>
           </Link>
         </div>
 
@@ -62,12 +74,12 @@ export default async function PenjualanPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <Suspense fallback={<PenjualanSkeleton />}>
-        <PenjualanTable
-          allTransaksi={allTransaksi}
-          totalPages={totalPages}
-          currentPage={currentPage}
-        />
+      {/* Suspense dengan key yang berubah saat search/pagination berubah */}
+      <Suspense 
+        key={`${query}-${currentPage}-${Date.now()}`} 
+        fallback={<PenjualanSkeleton />}
+      >
+        <PenjualanContent query={query} currentPage={currentPage} />
       </Suspense>
     </div>
   );

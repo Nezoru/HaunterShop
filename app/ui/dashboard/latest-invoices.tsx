@@ -52,13 +52,13 @@ export default async function LatestInvoices() {
                   )}
                 >
                   <div className="flex items-center">
-                    <Image
+                    {/* <Image
                       src={transaction.image_url || '/default-avatar.png'}
                       alt={`${transaction.nama_pembeli}'s profile picture`}
                       className="mr-4 rounded-full"
                       width={32}
                       height={32}
-                    />
+                    /> */}
                     <div className="min-w-0">
                       <p className={`${shadowsIntoLightTwo.className} truncate font-semibold md:text-base`}>
                         {transaction.nama_pembeli}

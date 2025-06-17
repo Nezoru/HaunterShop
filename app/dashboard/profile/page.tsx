@@ -38,6 +38,7 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setIsEditing(false);
+    router.back();
   };
 
   const handleChangePassword = () => {
@@ -103,7 +104,7 @@ export default function ProfilePage() {
 
             {/* Change Password and Logout Buttons */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <Link href="/login/reset-password" className="w-full">
+              <Link href="/auth/reset-password" className="w-full">
                 <button
                   onClick={handleChangePassword}
                   className="w-full h-12 md:h-16 bg-neutral-700 rounded-xl border-4 border-black hover:bg-neutral-600 transition-colors transform hover:scale-105 active:scale-95"

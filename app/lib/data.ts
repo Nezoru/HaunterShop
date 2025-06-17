@@ -47,6 +47,14 @@ interface CreateTransaksiData {
   tanggal_transaksi: string;
 }
 
+interface KostumTerlaris {
+  nama_produk: string;
+  total_transaksi: number;
+  total_pendapatan: number;
+  harga_produk: number;
+  image_produk: string;
+}
+
 export const dynamic = 'force-dynamic';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
@@ -963,5 +971,170 @@ export async function deleteTransaksi(id: string) {
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error(`Gagal menghapus transaksi: ${error instanceof Error ? error.message : 'Kesalahan tidak dikenal'}`);
+  }
+}
+
+export async function getKostumTerlarisBulanIni(): Promise<KostumTerlaris | null> {
+  try {
+    console.log('Fetching kostum terlaris bulan ini...');
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    const data = await sql<KostumTerlaris[]>`
+      SELECT 
+        produk.nama_produk,
+        produk.harga_produk,
+        produk.image_produk,
+        COUNT(transaksi.id) as total_transaksi,
+        SUM(transaksi.harga) as total_pendapatan
+      FROM transaksi
+      JOIN produk ON transaksi.produk_id = produk.id
+      WHERE 
+        EXTRACT(YEAR FROM transaksi.tanggal_transaksi) = EXTRACT(YEAR FROM CURRENT_DATE)
+        AND EXTRACT(MONTH FROM transaksi.tanggal_transaksi) = EXTRACT(MONTH FROM CURRENT_DATE)
+      GROUP BY 
+        produk.id, 
+        produk.nama_produk, 
+        produk.harga_produk, 
+        produk.image_produk
+      ORDER BY total_transaksi DESC, total_pendapatan DESC
+      LIMIT 1
+    `;
+
+    return data[0] || null;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch kostum terlaris bulan ini.');
+  }
+}
+
+// Fungsi untuk mendapatkan top 5 kostum terlaris bulan ini
+export async function getTop5KostumTerlarisBulanIni(): Promise<KostumTerlaris[]> {
+  try {
+    console.log('Fetching top 5 kostum terlaris bulan ini...');
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    const data = await sql<KostumTerlaris[]>`
+      SELECT 
+        produk.nama_produk,
+        produk.harga_produk,
+        produk.image_produk,
+        COUNT(transaksi.id) as total_transaksi,
+        SUM(transaksi.harga) as total_pendapatan
+      FROM transaksi
+      JOIN produk ON transaksi.produk_id = produk.id
+      WHERE 
+        EXTRACT(YEAR FROM transaksi.tanggal_transaksi) = EXTRACT(YEAR FROM CURRENT_DATE)
+        AND EXTRACT(MONTH FROM transaksi.tanggal_transaksi) = EXTRACT(MONTH FROM CURRENT_DATE)
+      GROUP BY 
+        produk.id, 
+        produk.nama_produk, 
+        produk.harga_produk, 
+        produk.image_produk
+      ORDER BY total_transaksi DESC, total_pendapatan DESC
+      LIMIT 5
+    `;
+
+    return data;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch top 5 kostum terlaris bulan ini.');
+  }
+}
+
+// Fungsi untuk statistik kostum terlaris dengan periode yang bisa disesuaikan
+export async function getKostumTerlarisByPeriod(
+  startDate: string, 
+  endDate: string
+): Promise<KostumTerlaris[]> {
+  try {
+    console.log(`Fetching kostum terlaris dari ${startDate} sampai ${endDate}...`);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    const data = await sql<KostumTerlaris[]>`
+      SELECT 
+        produk.nama_produk,
+        produk.harga_produk,
+        produk.image_produk,
+        COUNT(transaksi.id) as total_transaksi,
+        SUM(transaksi.harga) as total_pendapatan
+      FROM transaksi
+      JOIN produk ON transaksi.produk_id = produk.id
+      WHERE 
+        transaksi.tanggal_transaksi >= ${startDate}::date
+        AND transaksi.tanggal_transaksi <= ${endDate}::date
+      GROUP BY 
+        produk.id, 
+        produk.nama_produk, 
+        produk.harga_produk, 
+        produk.image_produk
+      ORDER BY total_transaksi DESC, total_pendapatan DESC
+    `;
+
+    return data;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error(`Failed to fetch kostum terlaris dari ${startDate} sampai ${endDate}.`);
+  }
+}
+
+// Fungsi untuk mendapatkan statistik lengkap kostum terlaris
+export async function getKostumTerlarisStats() {
+  try {
+    console.log('Fetching kostum terlaris statistics...');
+    
+    // Kostum terlaris bulan ini
+    const bulanIni = await getKostumTerlarisBulanIni();
+    
+    // Kostum terlaris minggu ini
+    const mingguIni = await sql<KostumTerlaris[]>`
+      SELECT 
+        produk.nama_produk,
+        produk.harga_produk,
+        produk.image_produk,
+        COUNT(transaksi.id) as total_transaksi,
+        SUM(transaksi.harga) as total_pendapatan
+      FROM transaksi
+      JOIN produk ON transaksi.produk_id = produk.id
+      WHERE 
+        transaksi.tanggal_transaksi >= DATE_TRUNC('week', CURRENT_DATE)
+        AND transaksi.tanggal_transaksi < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '1 week'
+      GROUP BY 
+        produk.id, 
+        produk.nama_produk, 
+        produk.harga_produk, 
+        produk.image_produk
+      ORDER BY total_transaksi DESC, total_pendapatan DESC
+      LIMIT 1
+    `;
+
+    // Kostum terlaris hari ini
+    const hariIni = await sql<KostumTerlaris[]>`
+      SELECT 
+        produk.nama_produk,
+        produk.harga_produk,
+        produk.image_produk,
+        COUNT(transaksi.id) as total_transaksi,
+        SUM(transaksi.harga) as total_pendapatan
+      FROM transaksi
+      JOIN produk ON transaksi.produk_id = produk.id
+      WHERE 
+        DATE(transaksi.tanggal_transaksi) = CURRENT_DATE
+      GROUP BY 
+        produk.id, 
+        produk.nama_produk, 
+        produk.harga_produk, 
+        produk.image_produk
+      ORDER BY total_transaksi DESC, total_pendapatan DESC
+      LIMIT 1
+    `;
+
+    return {
+      bulanIni: bulanIni,
+      mingguIni: mingguIni[0] || null,
+      hariIni: hariIni[0] || null
+    };
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch kostum terlaris statistics.');
   }
 }

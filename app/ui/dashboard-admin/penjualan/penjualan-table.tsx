@@ -1,11 +1,11 @@
-// app/ui/dashboard-admin/penjualan/penjualan-table.tsx  
+// app/ui/dashboard-admin/penjualan/penjualan-table.tsx
 'use client';
-import React, { useState, useTransition } from 'react';  
-import PaginationWrapper from './pagination.wrapper';  
+import React, { useState, useTransition, useEffect } from 'react';  
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline'; 
-import { shadowsIntoLightTwo } from '@/app/ui/fonts';
+import { shadowsIntoLightTwo, newRocker } from '@/app/ui/fonts';
 import Link from 'next/link';
 import { deleteTransaksiAction } from '@/app/lib/actions';
+import { useSearchParams } from 'next/navigation';
 
 // Interface untuk TransaksiWithDetails (sesuai dengan yang di data.ts)
 interface TransaksiWithDetails {
@@ -24,15 +24,29 @@ interface Props {
   allTransaksi: TransaksiWithDetails[];
   totalPages: number;
   currentPage: number;
+  totalItems?: number;
+  query?: string;
 }
 
 export const dynamic = 'force-dynamic';
 
-export default function PenjualanTable({ allTransaksi, totalPages, currentPage }: Props) {
+export default function PenjualanTable({ 
+  allTransaksi, 
+  totalPages, 
+  currentPage, 
+  totalItems = 0,
+  query = ''
+}: Props) {
   
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  // Fix hydration dengan useEffect
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleDelete = async (id: string) => {
     setDeletingId(id);
@@ -60,9 +74,52 @@ export default function PenjualanTable({ allTransaksi, totalPages, currentPage }
     setShowConfirmModal(id);
   };
 
+  // Format tanggal yang aman untuk hydration
+  const formatDate = (date: Date) => {
+    if (!isClient) {
+      // Return consistent format during SSR
+      return new Date(date).toISOString().split('T')[0];
+    }
+    // Client-side formatting
+    return new Date(date).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  };
+
+  // Hitung range data yang ditampilkan
+  const startItem = (currentPage - 1) * 5 + 1;
+  const endItem = Math.min(currentPage * 5, totalItems);
+
+  // Show loading state during hydration
+  if (!isClient) {
+    return (
+      <div className="relative">
+        <div className={`mb-4 text-sm text-gray-300 ${shadowsIntoLightTwo.className}`}>
+          Loading...
+        </div>
+        <div className="overflow-x-auto bg-white rounded-lg">
+          <div className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <div className="overflow-x-auto bg-white rounded-lg">
+        {/* Search Results Info - jika ada query */}
+        {query && (
+          <div className={`p-4 bg-gray-50 border-b ${shadowsIntoLightTwo.className}`}>
+            <p className="text-sm text-gray-600">
+              Menampilkan {allTransaksi.length} dari {totalItems} hasil untuk "{query}"
+            </p>
+          </div>
+        )}
+
         <table className="min-w-full">
           <thead className="bg-black text-white border border-white">
             <tr>
@@ -78,8 +135,8 @@ export default function PenjualanTable({ allTransaksi, totalPages, currentPage }
           <tbody className="divide-y divide-gray-200">
             {allTransaksi.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                  Tidak ada data penjualan yang ditemukan
+                <td colSpan={7} className={`px-6 py-8 text-center text-gray-500 ${shadowsIntoLightTwo.className}`}>
+                  {query ? `Tidak ada transaksi yang ditemukan untuk "${query}"` : 'Tidak ada data penjualan yang ditemukan'}
                 </td>
               </tr>
             ) : (
@@ -89,7 +146,7 @@ export default function PenjualanTable({ allTransaksi, totalPages, currentPage }
                     {item.id}
                   </td>
                   <td className={`px-6 py-4 whitespace-nowrap text-sm text-black ${shadowsIntoLightTwo.className}`}>
-                    {new Date(item.tanggal_transaksi).toLocaleDateString('id-ID')}
+                    {formatDate(item.tanggal_transaksi)}
                   </td>
                   <td className={`px-6 py-4 whitespace-nowrap text-sm text-black ${shadowsIntoLightTwo.className}`}>
                     Rp{item.harga.toLocaleString('id-ID')}
@@ -114,12 +171,6 @@ export default function PenjualanTable({ allTransaksi, totalPages, currentPage }
                   </td>
                   <td className={`px-6 py-4 whitespace-nowrap text-sm text-black ${shadowsIntoLightTwo.className}`}>
                     <div className="flex space-x-2">
-                      {/* <Link href={`/dashboard-admin/penjualan-admin/edit?id=${item.id}`}>
-                        <button className={`bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded flex items-center border border-black ${shadowsIntoLightTwo.className}`}>
-                          <PencilSquareIcon className="h-4 w-4 mr-1" />
-                          Edit
-                        </button> 
-                      </Link> */}
                       <button 
                         onClick={() => confirmDelete(item.id)}
                         disabled={deletingId === item.id || isPending}
@@ -139,10 +190,44 @@ export default function PenjualanTable({ allTransaksi, totalPages, currentPage }
             )}
           </tbody>
         </table>
-        
+
+        {/* Pagination - hanya tampilkan jika ada lebih dari 1 halaman */}
         {totalPages > 1 && (
-          <div className="p-4 flex justify-center">
-            <PaginationWrapper totalPages={totalPages} />
+          <div className="flex justify-center p-4 bg-white">
+            <nav className={`flex space-x-1 ${newRocker.className}`}>
+              {/* Previous button */}
+              {currentPage > 1 && (
+                <Link
+                  href={`?${query ? `query=${encodeURIComponent(query)}&` : ''}page=${currentPage - 1}`}
+                  className="px-3 py-1 bg-white text-black hover:bg-gray-200 border border-gray-300"
+                >
+                  ‹ Prev
+                </Link>
+              )}
+              
+              {/* Page numbers */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <Link
+                  key={page}
+                  href={`?${query ? `query=${encodeURIComponent(query)}&` : ''}page=${page}`}
+                  className={`px-3 py-1 ${
+                    page === currentPage ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-200'
+                  } border border-gray-300`}
+                >
+                  {page}
+                </Link>
+              ))}
+              
+              {/* Next button */}
+              {currentPage < totalPages && (
+                <Link
+                  href={`?${query ? `query=${encodeURIComponent(query)}&` : ''}page=${currentPage + 1}`}
+                  className="px-3 py-1 bg-white text-black hover:bg-gray-200 border border-gray-300"
+                >
+                  Next ›
+                </Link>
+              )}
+            </nav>
           </div>
         )}
       </div>

@@ -16,12 +16,12 @@ const UpdateProdukSchema = z.object({
 });
 
 const CreateTransaksiSchema = z.object({
-  customer_id: z.string().min(1, 'Customer ID harus diisi'),
-  produk_id: z.string().min(1, 'Produk ID harus diisi'),
+  produk: z.string().min(1, 'Produk harus dipilih'),
+  namaPembeli: z.string().min(1, 'Nama pembeli harus diisi'),
+  emailPembeli: z.string().email('Format email tidak valid'),
   harga: z.number().positive('Harga harus lebih dari 0'),
-  tanggal_transaksi: z.string().min(1, 'Tanggal transaksi harus diisi'),
+  tanggal: z.string().min(1, 'Tanggal transaksi harus diisi'),
 });
-
 
 // Interface untuk form data
 interface CreateTransaksiFormData {
@@ -31,6 +31,16 @@ interface CreateTransaksiFormData {
   tanggal_transaksi: string;
 }
 
+export type TransaksiState = {
+  errors?: {
+    produk?: string[];
+    namaPembeli?: string[];
+    emailPembeli?: string[];
+    tanggal?: string[];
+  };
+  message?: string | null;
+  success?: boolean;
+};
 
 export type State = {
   errors?: {
@@ -61,29 +71,29 @@ export async function createProdukAction(prevState: State, formData: FormData) {
   const errors: State['errors'] = {};
   
   if (!nama_produk || nama_produk.trim() === '') {
-    errors.nama_produk = ['Nama produk harus diisi'];
+    errors.nama_produk = ['Nama produk harus diisi!'];
   }
   
   if (!harga_produk || harga_produk.trim() === '') {
-    errors.harga_produk = ['Harga produk harus diisi'];
+    errors.harga_produk = ['Harga produk harus diisi!'];
   } else if (isNaN(Number(harga_produk)) || Number(harga_produk) <= 0) {
-    errors.harga_produk = ['Harga produk harus berupa angka yang valid'];
+    errors.harga_produk = ['Harga produk harus berupa angka yang valid!'];
   }
   
   if (!image_produk || image_produk.trim() === '') {
-    errors.image_produk = ['Gambar produk harus diupload'];
+    errors.image_produk = ['Gambar produk harus diupload!'];
   }
 
   const stokNumber = Number(stok || '0');
   if (isNaN(stokNumber) || stokNumber < 0) {
-    errors.stok = ['Stok harus berupa angka yang valid (minimal 0)'];
+    errors.stok = ['Stok harus berupa angka yang valid (minimal 0)!'];
   }
 
   // If there are validation errors, return them
   if (Object.keys(errors).length > 0) {
     return {
       errors,
-      message: 'Gagal menambahkan produk. Periksa form di bawah.',
+      message: 'Gagal menambahkan produk. Periksa form di bawah!',
     };
   }
 
@@ -272,20 +282,105 @@ export async function deleteProduct(id: string) {
   }
 }
 
+// Transaksi
+
 export async function tambahTransaksi(data: {
   produk: string;
   namaPembeli: string;
   emailPembeli: string;
   harga: number;
   tanggal: string;
-}) {
-  await createTransaksiLangsung({
-    produk: data.produk,
-    namaPembeli: data.namaPembeli,
-    emailPembeli: data.emailPembeli,
-    harga: data.harga,
-    tanggal_transaksi: data.tanggal,
-  });
+}): Promise<TransaksiState> {
+  console.log('=== TAMBAH TRANSAKSI DEBUG ===');
+  console.log('Data yang diterima:', data);
+
+  // Validasi input dengan Zod
+  const validatedFields = CreateTransaksiSchema.safeParse(data);
+
+  console.log('Validation result:', validatedFields);
+
+  // Jika validasi gagal, return error
+  if (!validatedFields.success) {
+    console.error('Validation errors:', validatedFields.error.flatten().fieldErrors);
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Gagal menambahkan transaksi. Periksa form di bawah!',
+      success: false,
+    };
+  }
+
+  // Extract data yang sudah divalidasi
+  const { produk, namaPembeli, emailPembeli, harga, tanggal } = validatedFields.data;
+
+  // Additional validation (jika diperlukan)
+  const errors: TransaksiState['errors'] = {};
+
+  // Validasi tambahan untuk nama pembeli (contoh: minimal 2 karakter)
+  if (namaPembeli.trim().length < 2) {
+    errors.namaPembeli = ['Nama pembeli harus minimal 2 karakter'];
+  }
+
+  // Validasi tambahan untuk tanggal (contoh: tidak boleh tanggal masa depan)
+  const inputDate = new Date(tanggal);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999); // Set ke akhir hari untuk perbandingan
+  
+  if (inputDate > today) {
+    errors.tanggal = ['Tanggal transaksi tidak boleh lebih dari hari ini'];
+  }
+
+  // Jika ada error tambahan, return error
+  if (Object.keys(errors).length > 0) {
+    return {
+      errors,
+      message: 'Gagal menambahkan transaksi. Periksa form di bawah!',
+      success: false,
+    };
+  }
+
+  try {
+    console.log('Mencoba menyimpan ke database...');
+    
+    await createTransaksiLangsung({
+      produk: produk,
+      namaPembeli: namaPembeli.trim(),
+      emailPembeli: emailPembeli.trim(),
+      harga: harga,
+      tanggal_transaksi: tanggal,
+    });
+
+    console.log('Transaksi berhasil disimpan');
+    
+    // Revalidate path untuk refresh data
+    revalidatePath('/dashboard-admin/penjualan-admin');
+    
+    return {
+      success: true,
+      message: 'Transaksi berhasil ditambahkan!',
+    };
+    
+  } catch (error) {
+    console.error('Database Error:', error);
+    
+    // Handle specific database errors
+    let errorMessage = 'Database Error: Gagal menambahkan transaksi.';
+    
+    if (error instanceof Error) {
+      // Bisa disesuaikan dengan jenis error yang mungkin terjadi
+      if (error.message.includes('foreign key')) {
+        errorMessage = 'Produk yang dipilih tidak valid.';
+      } else if (error.message.includes('duplicate')) {
+        errorMessage = 'Transaksi dengan data yang sama sudah ada.';
+      } else {
+        errorMessage = `Gagal menyimpan transaksi: ${error.message}`;
+      }
+    }
+    
+    return {
+      message: errorMessage,
+      success: false,
+    };
+  }
 }
 
 export async function deleteTransaksiAction(id: string) {

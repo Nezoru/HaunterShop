@@ -6,13 +6,14 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { newRocker } from '@/app/ui/fonts';
 
-
 export default function Pagination({
   totalPages,
-  currentPage, // ⬅️ Tambahkan ini!
+  currentPage,
+  hideArrows = false, // Tambahkan prop untuk hide arrows jika diperlukan
 }: {
   totalPages: number;
-  currentPage: number; // ⬅️ Tambahkan ini juga!
+  currentPage: number;
+  hideArrows?: boolean;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -25,6 +26,16 @@ export default function Pagination({
 
   return (
     <div className="flex justify-center items-center space-x-1 bg-white">
+      {/* Previous Arrow */}
+      {!hideArrows && (
+        <PaginationArrow
+          href={createPageURL(currentPage - 1)}
+          direction="left"
+          isDisabled={currentPage <= 1}
+        />
+      )}
+
+      {/* Page Numbers */}
       {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
         const isEdge = page === 1 || page === totalPages;
         const isNearCurrent = Math.abs(page - currentPage) <= 1;
@@ -41,16 +52,24 @@ export default function Pagination({
         }
 
         if (page === 2 && currentPage > 4) {
-          return <div key="ellipsis-1" className="px-3 py-1">...</div>;
+          return <div key="ellipsis-1" className="px-3 py-1 text-gray-500">...</div>;
         }
 
         if (page === totalPages - 1 && currentPage < totalPages - 3) {
-          return <div key="ellipsis-2" className="px-3 py-1">...</div>;
+          return <div key="ellipsis-2" className="px-3 py-1 text-gray-500">...</div>;
         }
 
         return null;
       })}
 
+      {/* Next Arrow */}
+      {!hideArrows && (
+        <PaginationArrow
+          href={createPageURL(currentPage + 1)}
+          direction="right"
+          isDisabled={currentPage >= totalPages}
+        />
+      )}
     </div>
   );
 }
@@ -69,7 +88,7 @@ function PaginationNumber({
       href={href}
       className={clsx(
         `${newRocker.className}`,
-        'px-3 py-1 border border-gray-300',
+        'px-3 py-1 border border-gray-300 transition-colors duration-200',
         {
           'bg-black text-white': isActive,
           'bg-white text-black hover:bg-gray-200': !isActive,
@@ -106,7 +125,10 @@ function PaginationArrow({
   }
 
   return (
-    <Link href={href} className="px-3 py-1 border border-gray-300 bg-white hover:bg-gray-200">
+    <Link 
+      href={href} 
+      className="px-3 py-1 border border-gray-300 bg-white hover:bg-gray-200 transition-colors duration-200"
+    >
       {icon}
     </Link>
   );
